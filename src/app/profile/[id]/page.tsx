@@ -321,7 +321,7 @@ export default function ProfilePage() {
                 <Grid className="relative h-12 w-12 sm:h-16 sm:w-16 text-muted-foreground mx-auto" />
               </div>
               <h3 className="text-lg font-semibold text-foreground mb-2">No posts yet</h3>
-              <p className="text-muted-foreground text-sm sm:text-base">When {profile.username || 'this user'} shares photos, they'll appear here.</p>
+              <p className="text-muted-foreground text-sm sm:text-base">When {profile.username || 'this user'} shares photos, they&apos;ll appear here.</p>
             </div>
           ) : (
             <div className="space-y-6">

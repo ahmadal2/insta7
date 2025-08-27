@@ -42,18 +42,31 @@ npm install
 
 ### 3. Environment Configuration
 
-Copy `.env.local` and add your Supabase credentials:
+**CRITICAL:** You must configure your Supabase credentials before the app will work.
 
-```env
-NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-from-supabase-dashboard
-```
+1. Copy the environment template:
+   ```bash
+   cp .env.example .env.local
+   ```
 
-To get these values:
-1. Go to your [Supabase Dashboard](https://supabase.com/dashboard)
-2. Select your project
-3. Go to Settings → API
-4. Copy the Project URL and anon/public key
+2. Edit `.env.local` and replace the placeholder values with your actual Supabase credentials:
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=https://your-actual-project-id.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-actual-anon-key-from-supabase
+   ```
+
+3. **How to get your Supabase credentials:**
+   - Go to [Supabase Dashboard](https://supabase.com/dashboard)
+   - Select your project (or create a new one if you don&apos;t have one)
+   - Go to **Settings** → **API**
+   - Copy the **Project URL** (looks like: `https://xxxxx.supabase.co`)
+   - Copy the **anon/public key** (starts with: `eyJhbGciOiJIUzI1NiIs...`)
+   - Paste these values into your `.env.local` file
+
+4. **Restart the development server** after updating the environment file:
+   ```bash
+   npm run dev
+   ```
 
 ### 4. Database Setup
 
@@ -212,11 +225,38 @@ This project is open source and available under the [MIT License](LICENSE).
 
 ## 🔧 Troubleshooting
 
-### Environment Variables Error
-If you see "Missing Supabase environment variables", make sure:
-- `.env.local` file exists in the root directory
-- Variables are properly set with your Supabase credentials
-- Restart the development server after adding variables
+### "Failed to construct 'URL': Invalid URL" Error
+This error occurs when Supabase environment variables are not properly configured:
+
+**Solution:**
+1. Check that `.env.local` exists in your project root
+2. Ensure you&apos;ve replaced placeholder values with actual Supabase credentials
+3. Verify your Supabase URL format: `https://your-project-id.supabase.co`
+4. Restart your development server: `npm run dev`
+
+### "Missing Supabase environment variables" Error
+If you see this error, your environment file is missing or not properly loaded:
+
+**Solution:**
+1. Create `.env.local` file in project root
+2. Copy content from `.env.example`
+3. Replace placeholder values with your actual Supabase credentials
+4. Restart the development server
+
+### "Please replace the placeholder values" Error
+This means you&apos;re still using the template values instead of real credentials:
+
+**Solution:**
+1. Go to [Supabase Dashboard](https://supabase.com/dashboard)
+2. Select your project → Settings → API
+3. Copy the Project URL and anon key
+4. Update your `.env.local` file with these real values
+
+### Environment Variables Not Loading
+- Make sure the file is named exactly `.env.local` (not `.env.local.txt`)
+- Ensure the file is in the project root directory
+- Check that there are no spaces around the `=` sign
+- Restart the development server after making changes
 
 ### Database Connection Issues
 - Verify your Supabase URL and anon key
