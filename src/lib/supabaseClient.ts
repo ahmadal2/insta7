@@ -1,25 +1,15 @@
-'use client'
-
 import { createClient } from '@supabase/supabase-js'
 
-// Supabase Variablen laden (Client + Server)
-const supabaseUrl =
-  process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
-const supabaseAnonKey =
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error(
-    '❌ Missing Supabase environment variables.\n' +
-      'Please configure either:\n' +
-      '- NEXT_PUBLIC_SUPABASE_URL & NEXT_PUBLIC_SUPABASE_ANON_KEY (for client-side code)\n' +
-      '- SUPABASE_URL & SUPABASE_ANON_KEY (for server-side code)'
-  )
+  throw new Error('Missing Supabase environment variables. Please configure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your environment.')
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-// Types für unsere Datenbank-Tabellen
+// Types for our database tables
 export interface Profile {
   id: string
   username: string | null
