@@ -219,7 +219,7 @@ export default function DebugPage() {
                     <p className="text-blue-800">• Profile missing - execute the enhanced_storage_fix.sql script</p>
                   )}
                   {!debugInfo.canUploadToStorage && (
-                    <p className="text-blue-800">• Storage upload failed - check if 'images' bucket exists and is public</p>
+                    <p className="text-blue-800">• Storage upload failed - check if &apos;images&apos; bucket exists and is public</p>
                   )}
                   {!debugInfo.canInsertPost && (
                     <p className="text-blue-800">• Database insert failed - execute enhanced_storage_fix.sql to fix RLS policies</p>

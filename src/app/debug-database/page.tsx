@@ -33,7 +33,7 @@ export default function DatabaseDebugPage() {
 
       for (const tableName of tablesToCheck) {
         try {
-          const { data, error } = await supabase
+          const { error } = await supabase
             .from(tableName)
             .select('*')
             .limit(1)
@@ -97,7 +97,7 @@ export default function DatabaseDebugPage() {
 
     // Test comments table access
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('comments')
         .select('*')
         .limit(1)
@@ -115,7 +115,7 @@ export default function DatabaseDebugPage() {
 
     // Test follows table access
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('follows')
         .select('*')
         .limit(1)

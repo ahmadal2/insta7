@@ -104,7 +104,7 @@ export default function LoginPage() {
         setShowForgotPassword(false)
         setResetEmail('')
       }
-    } catch (error) {
+    } catch {
       setError('An unexpected error occurred. Please try again.')
     } finally {
       setResetLoading(false)
