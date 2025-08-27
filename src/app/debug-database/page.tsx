@@ -216,23 +216,24 @@ export default function DatabaseDebugPage() {
                 {Object.entries(testResults).map(([operation, result]) => {
                   const typedResult = result as { success: boolean; data?: unknown; error?: string }
                   return (
-                  <div key={operation} className="p-3 border rounded">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <StatusIcon success={typedResult.success} />
-                      <span className="font-medium capitalize">{operation} Access</span>
+                    <div key={operation} className="p-3 border rounded">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <StatusIcon success={typedResult.success} />
+                        <span className="font-medium capitalize">{operation} Access</span>
+                      </div>
+                      {typedResult.error && (
+                        <p className="text-sm text-red-600 bg-red-50 p-2 rounded">
+                          Error: {typedResult.error}
+                        </p>
+                      )}
+                      {Boolean(typedResult.data) && (
+                        <p className="text-sm text-green-600">
+                          Data found: {JSON.stringify(typedResult.data, null, 2)}
+                        </p>
+                      )}
                     </div>
-                    {typedResult.error && (
-                      <p className="text-sm text-red-600 bg-red-50 p-2 rounded">
-                        Error: {typedResult.error}
-                      </p>
-                    )}
-                    {Boolean(typedResult.data) && (
-                      <p className="text-sm text-green-600">
-                        Data found: {JSON.stringify(typedResult.data, null, 2)}
-                      </p>
-                    )}
-                  </div>
-                )}
+                  )
+                })}
               </div>
             </div>
           )}
