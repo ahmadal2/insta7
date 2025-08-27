@@ -1,0 +1,61 @@
+{
+  "name": "Ahmad Instagram Clone",
+  "short_name": "AhmadInsta",
+  "description": "A modern Instagram-like social media app",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait-primary",
+  "categories": ["social", "photo", "entertainment"],
+  "lang": "en",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Create Post",
+      "short_name": "Create",
+      "description": "Create a new post",
+      "url": "/upload",
+      "icons": [{
+        "src": "/icon-192.png",
+        "sizes": "192x192"
+      }]
+    },
+    {
+      "name": "Profile",
+      "short_name": "Profile",
+      "description": "View your profile",
+      "url": "/profile",
+      "icons": [{
+        "src": "/icon-192.png",
+        "sizes": "192x192"
+      }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-mobile.png",
+      "sizes": "640x1136",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ],
+  "prefer_related_applications": false,
+  "display_override": ["minimal-ui"],
+  "theme_color_dark": "#09090b",
+  "background_color_dark": "#000000"
+}

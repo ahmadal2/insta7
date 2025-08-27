@@ -63,7 +63,7 @@ export default function Loading({
   )
 }
 
-// Skeleton loading component for posts
+// Skeleton loading component for posts - optimized for mobile
 export function PostSkeleton() {
   return (
     <div className="bg-card/80 backdrop-blur-xl border border-border rounded-2xl overflow-hidden mb-6 animate-pulse shadow-lg">
@@ -76,8 +76,8 @@ export function PostSkeleton() {
         </div>
       </div>
       
-      {/* Image skeleton */}
-      <div className="w-full h-64 bg-gradient-to-br from-muted via-secondary to-muted animate-pulse"></div>
+      {/* Image skeleton - optimized aspect ratio for mobile */}
+      <div className="w-full aspect-square bg-gradient-to-br from-muted via-secondary to-muted animate-pulse"></div>
       
       {/* Content skeleton */}
       <div className="p-4 space-y-4">
@@ -95,7 +95,7 @@ export function PostSkeleton() {
   )
 }
 
-// Page loading component
+// Page loading component - optimized for mobile
 export function PageLoader() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center">

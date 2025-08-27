@@ -191,22 +191,43 @@ export async function getUserStats(userId: string) {
   return data
 }
 
-// FEED OPERATIONS
-export async function getFollowingFeed(limit = 20, offset = 0) {
+// FEED OPERATIONS - OPTIMIZED FOR MOBILE PERFORMANCE
+export async function getFollowingFeed(limit = 5, offset = 0) {
   const { data: { user }, error: userError } = await supabase.auth.getUser()
   if (userError || !user) throw new Error('Not logged in!')
 
-  // Get posts from users I follow + my own posts
+  // Single optimized query with joins to reduce database round trips
+  // Reduced limit to 5 for better mobile performance
   const { data, error } = await supabase
     .from('posts')
     .select(`
-      *,
-      profiles:user_id (username, avatar_url),
-      likes (*),
-      comments (*),
-      reposts (*)
+      id,
+      user_id,
+      image_url,
+      caption,
+      created_at,
+      profiles:user_id!inner(
+        id,
+        username,
+        avatar_url
+      ),
+      likes(
+        user_id
+      ),
+      comments(
+        id
+      ),
+      reposts(
+        user_id
+      )
     `)
-    .or(`user_id.eq.${user.id},user_id.in.(${await getFollowingIds(user.id)})`)
+    .in('user_id', 
+      supabase
+        .from('follows')
+        .select('following_id')
+        .eq('follower_id', user.id)
+        .then(({ data }) => [...(data?.map(f => f.following_id) || []), user.id])
+    )
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1)
 
@@ -214,21 +235,38 @@ export async function getFollowingFeed(limit = 20, offset = 0) {
   return data
 }
 
-export async function getPublicFeed(limit = 20, offset = 0) {
+export async function getPublicFeed(limit = 5, offset = 0) {
+  // Single optimized query with all related data
+  // Reduced limit to 5 for better mobile performance
+  // Only fetch essential data to reduce payload
   const { data, error } = await supabase
     .from('posts')
     .select(`
-      *,
-      profiles:user_id (username, avatar_url),
-      likes (*),
-      comments (*),
-      reposts (*)
+      id,
+      user_id,
+      image_url,
+      caption,
+      created_at,
+      profiles:user_id(
+        id,
+        username,
+        avatar_url
+      ),
+      likes(
+        user_id
+      ),
+      comments(
+        id
+      ),
+      reposts(
+        user_id
+      )
     `)
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1)
 
   if (error) throw error
-  return data
+  return data || []
 }
 
 // Helper function to get following user IDs

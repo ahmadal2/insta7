@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import { User } from '@supabase/supabase-js'
 import { supabase, Post } from '@/lib/supabaseClient'
 import { getPublicFeed, getFollowingFeed } from '@/lib/postActions'
@@ -12,101 +12,107 @@ import Link from 'next/link'
 // Disable static generation and force dynamic rendering
 export const dynamic = 'force-dynamic'
 
+// Performance constants optimized for mobile
+const INITIAL_LOAD_COUNT = 3  // Further reduced for faster mobile load
+const PAGINATION_SIZE = 5     // Smaller pagination for mobile
+const MAX_RETRIES = 2
+const SCROLL_THRESHOLD = 500  // Reduced scroll threshold for mobile
+
 export default function Home() {
   const [posts, setPosts] = useState<Post[]>([])
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [postsLoading, setPostsLoading] = useState(false)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [feedType, setFeedType] = useState<'public' | 'following'>('public')
+  const [hasMore, setHasMore] = useState(true)
+  const [page, setPage] = useState(0)
+  const [isMobile, setIsMobile] = useState(false)
 
-  const fetchPosts = useCallback(async (type: 'public' | 'following' = 'public') => {
-    setPostsLoading(true)
-    try {
-      console.log(`Fetching ${type} feed...`)
-      
-      let postsData
-      if (type === 'following' && user) {
-        // Try to get following feed first
-        try {
-          postsData = await getFollowingFeed(20, 0)
-        } catch (followingError) {
-          console.warn('Following feed failed, falling back to public:', followingError)
-          postsData = await getPublicFeed(20, 0)
+  // Detect mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768)
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  // Optimized fetch with retry logic and better error handling
+  const fetchPostsOptimized = useCallback(async (
+    type: 'public' | 'following' = 'public', 
+    pageNum: number = 0,
+    append: boolean = false
+  ) => {
+    if (append) {
+      setLoadingMore(true)
+    } else {
+      setPostsLoading(true)
+    }
+
+    const isInitialLoad = pageNum === 0
+    const limit = isInitialLoad ? INITIAL_LOAD_COUNT : PAGINATION_SIZE
+    const offset = isInitialLoad ? 0 : INITIAL_LOAD_COUNT + (pageNum - 1) * PAGINATION_SIZE
+    
+    let retryCount = 0
+    
+    while (retryCount < MAX_RETRIES) {
+      try {
+        console.log(`Fetching ${type} feed (page ${pageNum}, limit ${limit}, offset ${offset})...`)
+        
+        let postsData: Post[] = []
+        
+        if (type === 'following' && user) {
+          try {
+            postsData = await getFollowingFeed(limit, offset)
+          } catch (followingError) {
+            console.warn('Following feed failed, falling back to public:', followingError)
+            postsData = await getPublicFeed(limit, offset)
+          }
+        } else {
+          postsData = await getPublicFeed(limit, offset)
         }
-      } else {
-        // Fallback to manual enrichment if advanced functions fail
-        try {
-          postsData = await getPublicFeed(20, 0)
-        } catch (publicError) {
-          console.warn('Public feed function failed, using manual method:', publicError)
-          
-          // Manual fallback - same as before
-          const { data: basicPosts, error } = await supabase
-            .from('posts')
-            .select('*')
-            .order('created_at', { ascending: false })
 
-          if (error) {
-            console.error('Error fetching posts:', error)
-            return
+        console.log(`Successfully fetched ${postsData.length} posts`)
+        
+        if (append) {
+          setPosts(prev => [...prev, ...postsData])
+        } else {
+          setPosts(postsData)
+        }
+        
+        // Check if we have more posts to load
+        setHasMore(postsData.length === limit)
+        
+        break // Success, exit retry loop
+        
+      } catch (err) {
+        retryCount++
+        console.error(`Error fetching posts (attempt ${retryCount}/${MAX_RETRIES}):`, err)
+        
+        if (retryCount >= MAX_RETRIES) {
+          console.error('Max retries reached, falling back to empty state')
+          if (!append) {
+            setPosts([])
           }
-
-          if (basicPosts && basicPosts.length > 0) {
-            const enrichedPosts = await Promise.all(
-              basicPosts.map(async (post) => {
-                // Get profile for this post's user
-                const { data: profile } = await supabase
-                  .from('profiles')
-                  .select('username, avatar_url')
-                  .eq('id', post.user_id)
-                  .single()
-
-                // Get likes for this post
-                const { data: likes } = await supabase
-                  .from('likes')
-                  .select('*')
-                  .eq('post_id', post.id)
-
-                // Get comments for this post
-                const { data: comments } = await supabase
-                  .from('comments')
-                  .select('*, profiles(username, avatar_url)')
-                  .eq('post_id', post.id)
-                  .order('created_at', { ascending: true })
-
-                // Get reposts for this post
-                const { data: reposts } = await supabase
-                  .from('reposts')
-                  .select('*')
-                  .eq('original_post_id', post.id)
-
-                return {
-                  ...post,
-                  profiles: profile || { username: 'Unknown', avatar_url: null },
-                  likes: likes || [],
-                  comments: comments || [],
-                  reposts: reposts || []
-                }
-              })
-            )
-            
-            postsData = enrichedPosts
-          } else {
-            postsData = basicPosts || []
-          }
+          setHasMore(false)
+        } else {
+          // Wait before retry (exponential backoff)
+          await new Promise(resolve => setTimeout(resolve, 1000 * retryCount))
         }
       }
-
-      console.log('Posts fetched successfully:', postsData)
-      setPosts(postsData as Post[])
-    } catch (err) {
-      console.error('Unexpected error in fetchPosts:', err)
-      setPosts([])
-    } finally {
+    }
+    
+    if (append) {
+      setLoadingMore(false)
+    } else {
       setPostsLoading(false)
     }
   }, [user])
 
+  // Initial load effect
   useEffect(() => {
     const getSessionAndPosts = async () => {
       try {
@@ -114,8 +120,9 @@ export default function Home() {
         const { data: { session } } = await supabase.auth.getSession()
         setUser(session?.user ?? null)
 
-        // Fetch posts based on current feed type
-        await fetchPosts(feedType)
+        // Reset pagination and fetch initial posts
+        setPage(0)
+        await fetchPostsOptimized(feedType, 0, false)
       } catch (err) {
         console.error('Unexpected error in getSessionAndPosts:', err)
       }
@@ -133,22 +140,63 @@ export default function Home() {
     )
 
     return () => subscription.unsubscribe()
-  }, [feedType, fetchPosts])
+  }, []) // Remove feedType and fetchPostsOptimized to prevent infinite loops
 
-  // Effect to refetch posts when feed type changes
+  // Effect for feed type changes
   useEffect(() => {
     if (!loading) {
-      fetchPosts(feedType)
+      setPage(0)
+      setHasMore(true)
+      fetchPostsOptimized(feedType, 0, false)
     }
-  }, [feedType, loading, fetchPosts])
+  }, [feedType, loading]) // Only depend on feedType and loading
 
-  const handleFeedSwitch = (type: 'public' | 'following') => {
-    setFeedType(type)
-  }
+  // Infinite scroll functionality
+  const loadMorePosts = useCallback(() => {
+    if (!loadingMore && hasMore && !loading) {
+      const nextPage = page + 1
+      setPage(nextPage)
+      fetchPostsOptimized(feedType, nextPage, true)
+    }
+  }, [loadingMore, hasMore, loading, page, feedType, fetchPostsOptimized])
 
-  const handlePostDelete = (postId: string) => {
+  // Scroll event listener for infinite scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      // Use smaller threshold for mobile devices
+      const threshold = isMobile ? SCROLL_THRESHOLD : 1000
+      if (window.innerHeight + document.documentElement.scrollTop 
+          >= document.documentElement.offsetHeight - threshold) {
+        loadMorePosts()
+      }
+    }
+
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [loadMorePosts, isMobile])
+
+  const handleFeedSwitch = useCallback((type: 'public' | 'following') => {
+    if (type !== feedType) {
+      setFeedType(type)
+    }
+  }, [feedType])
+
+  const handlePostDelete = useCallback((postId: string) => {
     setPosts(prevPosts => prevPosts.filter(post => post.id !== postId))
-  }
+  }, [])
+
+  // Memoize posts rendering for performance
+  const renderedPosts = useMemo(() => {
+    return posts.map((post) => (
+      <PostCard 
+        key={post.id} 
+        post={post} 
+        currentUser={user} 
+        onPostDelete={handlePostDelete}
+        lazy={true} // Enable lazy loading for images
+      />
+    ))
+  }, [posts, user, handlePostDelete])
 
   if (loading) {
     return <PageLoader />
@@ -233,10 +281,11 @@ export default function Home() {
         )}
 
         {/* Posts Feed */}
-        {postsLoading ? (
+        {postsLoading && posts.length === 0 ? (
+          // Show skeletons during initial load
           <div className="space-y-6">
-            {Array.from({ length: 3 }).map((_, index) => (
-              <PostSkeleton key={`skeleton-${index}`} />
+            {Array.from({ length: INITIAL_LOAD_COUNT }).map((_, i) => (
+              <PostSkeleton key={`skeleton-${i}`} />
             ))}
           </div>
         ) : posts.length === 0 ? (
@@ -262,11 +311,36 @@ export default function Home() {
             )}
           </div>
         ) : (
-          <div className="space-y-6">
-            {posts.map((post: Post) => (
-              <PostCard key={post.id} post={post} currentUser={user} onPostDelete={handlePostDelete} />
-            ))}
-          </div>
+          <>
+            <div className="space-y-6">
+              {renderedPosts}
+            </div>
+            
+            {/* Load more indicator */}
+            {hasMore && (
+              <div className="py-8 flex justify-center">
+                {loadingMore ? (
+                  <div className="flex items-center space-x-3 text-muted-foreground">
+                    <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                    <span>Loading more posts...</span>
+                  </div>
+                ) : (
+                  <button
+                    onClick={loadMorePosts}
+                    className="px-6 py-3 bg-secondary/50 hover:bg-secondary text-foreground rounded-xl transition-colors font-medium"
+                  >
+                    Load More Posts
+                  </button>
+                )}
+              </div>
+            )}
+            
+            {!hasMore && posts.length > INITIAL_LOAD_COUNT && (
+              <div className="py-8 text-center text-muted-foreground text-sm">
+                You&apos;ve reached the end of the feed
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

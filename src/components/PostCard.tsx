@@ -9,6 +9,7 @@ import { User } from '@supabase/supabase-js'
 import { supabase, Post, Comment } from '@/lib/supabaseClient'
 import { repostPost, unrepostPost, deletePost, deleteComment, followUser, unfollowUser, checkIfFollowing } from '@/lib/postActions'
 import { Heart, MessageCircle, Send, Share2, User as UserIcon, Loader2, MoreHorizontal, Trash2, UserPlus, UserMinus } from 'lucide-react'
+import OptimizedImage from '@/components/OptimizedImage'
 
 const commentSchema = z.object({
   text: z.string().min(1, 'Comment cannot be empty').max(500, 'Comment too long'),
@@ -20,9 +21,10 @@ interface PostCardProps {
   post: Post
   currentUser: User | null
   onPostDelete?: (postId: string) => void
+  lazy?: boolean // New prop for lazy loading
 }
 
-export default function PostCard({ post, currentUser, onPostDelete }: PostCardProps) {
+export default function PostCard({ post, currentUser, onPostDelete, lazy = true }: PostCardProps) {
   const [isLiked, setIsLiked] = useState(false)
   const [likesCount, setLikesCount] = useState(post.likes?.length || 0)
   const [comments, setComments] = useState<Comment[]>(post.comments || [])
@@ -351,10 +353,15 @@ export default function PostCard({ post, currentUser, onPostDelete }: PostCardPr
 
       {/* Image */}
       <div className="relative w-full overflow-hidden">
-        <img
+        <OptimizedImage
           src={post.image_url}
           alt={post.caption || 'Post image'}
+          lazy={lazy}
           className="w-full h-auto object-cover max-h-96 group-hover:scale-[1.02] transition-transform duration-500"
+          style={{
+            aspectRatio: '1 / 1',
+            objectFit: 'cover'
+          }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
       </div>

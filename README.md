@@ -192,7 +192,65 @@ Open [http://localhost:3000](http://localhost:3000) to view the application.
 4. **Manage Content**: Delete your own posts and comments
 5. **Dark Mode**: Toggle between light and dark themes
 
-## 📁 Project Structure
+## 📱 Mobile Performance Optimizations
+
+This application includes several optimizations for mobile devices to ensure fast loading and smooth performance:
+
+### Key Optimizations:
+
+1. **Lazy Loading**
+   - Images load only when they come into view
+   - Components load on demand
+   - Reduced initial bundle size
+
+2. **Infinite Scroll**
+   - Posts load progressively as you scroll
+   - Initial load shows fewer posts for faster rendering
+   - Pagination with "Load More" option
+
+3. **Image Optimization**
+   - WebP format support for modern browsers
+   - Responsive images for different screen sizes
+   - Aspect ratio preservation to prevent layout shifts
+
+4. **Caching & Offline Support**
+   - Service worker for offline functionality
+   - Asset caching for faster subsequent loads
+   - PWA support for app-like experience
+
+5. **Bundle Optimization**
+   - Code splitting for smaller chunks
+   - Tree-shaking to remove unused code
+   - Compression enabled in Next.js config
+
+6. **UI Performance**
+   - Skeleton loading states
+   - Efficient re-rendering with React.memo
+   - Optimized CSS with Tailwind
+   - Reduced animations on low-end devices
+
+### Mobile-Specific Features:
+
+- **Touch-friendly interface** with appropriate tap targets
+- **Responsive design** that adapts to all screen sizes
+- **Dark mode** that respects system preferences
+- **Progressive Web App** support for home screen installation
+- **Fast loading** even on slower mobile networks
+
+### Performance Testing:
+
+To test mobile performance:
+
+1. Use Chrome DevTools Device Mode
+2. Enable mobile network throttling
+3. Check Lighthouse performance scores
+4. Monitor bundle sizes with `npm run build`
+
+Common performance metrics to monitor:
+- First Contentful Paint (FCP) < 2.5 seconds
+- Largest Contentful Paint (LCP) < 4 seconds
+- Cumulative Layout Shift (CLS) < 0.1
+- Time to Interactive (TTI) < 5 seconds
 
 ```
 src/
