@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { User } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabaseClient'
 import { Camera, Home, Plus, User as UserIcon, LogOut, LogIn, Bug, Database } from 'lucide-react'
@@ -10,7 +9,6 @@ import { Camera, Home, Plus, User as UserIcon, LogOut, LogIn, Bug, Database } fr
 export default function NavBar() {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
-  const router = useRouter()
 
   useEffect(() => {
     // Get initial session

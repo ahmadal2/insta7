@@ -7,8 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { User } from '@supabase/supabase-js'
 import { supabase, Post, Comment } from '@/lib/supabaseClient'
-import { repostPost, unrepostPost, checkIfReposted } from '@/lib/postActions'
-import Loading from '@/components/Loading'
+import { repostPost, unrepostPost } from '@/lib/postActions'
 import { Heart, MessageCircle, Send, Share2, User as UserIcon, Loader2 } from 'lucide-react'
 
 const commentSchema = z.object({

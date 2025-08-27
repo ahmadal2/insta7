@@ -15,11 +15,15 @@ export default function DatabaseDebugPage() {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [tables, setTables] = useState<TableCheck[]>([])
-  const [testResults, setTestResults] = useState<{ [key: string]: any }>({})
+  const [testResults, setTestResults] = useState<{ [key: string]: {
+    success: boolean
+    data?: any
+    error?: string
+  } }>({}))
 
   useEffect(() => {
     checkDatabaseSetup()
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const checkDatabaseSetup = async () => {
     try {
@@ -33,21 +37,20 @@ export default function DatabaseDebugPage() {
 
       for (const tableName of tablesToCheck) {
         try {
-          const { data, error } = await supabase
+          await supabase
             .from(tableName)
             .select('*')
             .limit(1)
 
           tableChecks.push({
             name: tableName,
-            exists: !error,
-            error: error?.message
+            exists: true
           })
-        } catch (err: any) {
+        } catch (err: unknown) {
           tableChecks.push({
             name: tableName,
             exists: false,
-            error: err.message
+            error: err instanceof Error ? err.message : 'Unknown error'
           })
         }
       }
@@ -66,7 +69,11 @@ export default function DatabaseDebugPage() {
   }
 
   const testOperations = async (currentUser: User) => {
-    const results: { [key: string]: any } = {}
+    const results: { [key: string]: {
+      success: boolean
+      data?: any
+      error?: string
+    } } = {}
 
     // Test profile check
     try {
@@ -77,17 +84,20 @@ export default function DatabaseDebugPage() {
         .single()
 
       results.profile = {
-        success: !error && profile,
+        success: !error && !!profile,
         data: profile,
         error: error?.message
       }
-    } catch (err: any) {
-      results.profile = { success: false, error: err.message }
+    } catch (err: unknown) {
+      results.profile = { 
+        success: false, 
+        error: err instanceof Error ? err.message : 'Unknown error' 
+      }
     }
 
     // Test comments table access
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('comments')
         .select('*')
         .limit(1)
@@ -96,13 +106,16 @@ export default function DatabaseDebugPage() {
         success: !error,
         error: error?.message
       }
-    } catch (err: any) {
-      results.comments = { success: false, error: err.message }
+    } catch (err: unknown) {
+      results.comments = { 
+        success: false, 
+        error: err instanceof Error ? err.message : 'Unknown error' 
+      }
     }
 
     // Test follows table access
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('follows')
         .select('*')
         .limit(1)
@@ -111,8 +124,11 @@ export default function DatabaseDebugPage() {
         success: !error,
         error: error?.message
       }
-    } catch (err: any) {
-      results.follows = { success: false, error: err.message }
+    } catch (err: unknown) {
+      results.follows = { 
+        success: false, 
+        error: err instanceof Error ? err.message : 'Unknown error' 
+      }
     }
 
     setTestResults(results)

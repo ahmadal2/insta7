@@ -1,13 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { supabase } from '@/lib/supabaseClient'
-import Loading from '@/components/Loading'
 import { Camera, Mail, Lock } from 'lucide-react'
 
 const loginSchema = z.object({
@@ -24,7 +22,6 @@ export default function LoginPage() {
   const [resetLoading, setResetLoading] = useState(false)
   const [resetMessage, setResetMessage] = useState<string | null>(null)
   const [resetEmail, setResetEmail] = useState('')
-  const router = useRouter()
 
   const {
     register,
@@ -256,7 +253,7 @@ export default function LoginPage() {
 
           <div className="text-center">
             <span className="text-sm text-gray-600">
-              Don't have an account?{' '}
+              Don&apos;t have an account?{' '}
               <Link href="/auth/register" className="font-medium text-blue-600 hover:text-blue-500">
                 Sign up
               </Link>

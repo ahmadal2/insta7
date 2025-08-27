@@ -159,18 +159,20 @@ export default function ProfilePage() {
         setStats(prev => ({ ...prev, followersCount: prev.followersCount + 1 }))
         console.log('Successfully followed user')
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error toggling follow:', error)
       
       // Handle specific errors
-      if (error?.message?.includes('relation "follows" does not exist')) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      
+      if (errorMessage.includes('relation "follows" does not exist')) {
         setFollowError('Follow feature is not set up. Please run the database setup script.')
-      } else if (error?.message?.includes('RLS') || error?.message?.includes('policy')) {
+      } else if (errorMessage.includes('RLS') || errorMessage.includes('policy')) {
         setFollowError('Permission denied. Please ensure you are logged in and the database is properly configured.')
-      } else if (error?.message?.includes('foreign key')) {
+      } else if (errorMessage.includes('foreign key')) {
         setFollowError('Invalid user reference. Please refresh the page and try again.')
       } else {
-        setFollowError(`Failed to ${isFollowing ? 'unfollow' : 'follow'} user: ${error?.message || 'Unknown error'}`)
+        setFollowError(`Failed to ${isFollowing ? 'unfollow' : 'follow'} user: ${errorMessage}`)
       }
     } finally {
       setFollowLoading(false)

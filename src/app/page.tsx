@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { User } from '@supabase/supabase-js'
 import { supabase, Post } from '@/lib/supabaseClient'
 import { getPublicFeed, getFollowingFeed } from '@/lib/postActions'
 import PostCard from '@/components/PostCard'
-import Loading, { PostSkeleton, PageLoader } from '@/components/Loading'
+import { PostSkeleton, PageLoader } from '@/components/Loading'
 import { Camera, Plus, Globe, Users } from 'lucide-react'
 import Link from 'next/link'
 
@@ -16,7 +16,7 @@ export default function Home() {
   const [postsLoading, setPostsLoading] = useState(false)
   const [feedType, setFeedType] = useState<'public' | 'following'>('public')
 
-  const fetchPosts = async (type: 'public' | 'following' = 'public') => {
+  const fetchPosts = useCallback(async (type: 'public' | 'following' = 'public') => {
     setPostsLoading(true)
     try {
       console.log(`Fetching ${type} feed...`)
@@ -102,7 +102,7 @@ export default function Home() {
     } finally {
       setPostsLoading(false)
     }
-  }
+  }, [user])
 
   useEffect(() => {
     const getSessionAndPosts = async () => {
@@ -130,14 +130,14 @@ export default function Home() {
     )
 
     return () => subscription.unsubscribe()
-  }, [feedType])
+  }, [feedType, fetchPosts])
 
   // Effect to refetch posts when feed type changes
   useEffect(() => {
     if (!loading) {
       fetchPosts(feedType)
     }
-  }, [feedType])
+  }, [feedType, loading, fetchPosts])
 
   const handleFeedSwitch = (type: 'public' | 'following') => {
     setFeedType(type)

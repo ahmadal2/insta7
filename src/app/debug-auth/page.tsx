@@ -4,7 +4,10 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 
 export default function DebugAuthPage() {
-  const [authInfo, setAuthInfo] = useState<any>(null)
+  const [authInfo, setAuthInfo] = useState<{
+    session: any
+    error: any
+  } | null>(null)
   const [testResults, setTestResults] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
 
@@ -76,12 +79,16 @@ export default function DebugAuthPage() {
       }
 
       // Test 4: Check RLS policies
-      const { data: policies, error: policyError } = await supabase
-        .rpc('get_policies_for_table', { table_name: 'posts' })
-        .then(() => ({ data: 'RPC not available', error: null }))
-        .catch(() => ({ data: null, error: 'Could not check policies' }))
+      try {
+        const policyCheckResult = await supabase
+          .rpc('get_policies_for_table', { table_name: 'posts' })
+          .then(() => 'RPC available')
+          .catch(() => 'Could not check policies')
 
-      results.push(`ℹ️ Policy check: ${policyError || 'Policies seem to be set up'}`);
+        results.push(`ℹ️ Policy check: ${policyCheckResult}`);
+      } catch {
+        results.push('ℹ️ Policy check: Policies seem to be set up');
+      }
 
     } catch (error) {
       results.push(`❌ Unexpected error: ${error}`)

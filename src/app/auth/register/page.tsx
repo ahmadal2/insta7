@@ -1,13 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { supabase } from '@/lib/supabaseClient'
-import Loading from '@/components/Loading'
 import { Camera, Mail, Lock, User } from 'lucide-react'
 import React from 'react'
 
@@ -28,7 +26,6 @@ export default function RegisterPage() {
   const [error, setError] = useState<string | React.ReactElement | null>(null)
   const [success, setSuccess] = useState(false)
   const [needsConfirmation, setNeedsConfirmation] = useState(false)
-  const router = useRouter()
 
   const {
     register,

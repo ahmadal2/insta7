@@ -2,11 +2,12 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { User } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabaseClient'
 import { LogIn, LogOut, Loader2 } from 'lucide-react'
 
 interface AuthButtonProps {
-  user?: any
+  user?: User | null
   className?: string
 }
 

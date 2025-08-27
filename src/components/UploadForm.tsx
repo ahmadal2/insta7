@@ -6,7 +6,6 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { supabase } from '@/lib/supabaseClient'
-import Loading from '@/components/Loading'
 import { Upload, Image as ImageIcon, X } from 'lucide-react'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -17,11 +16,10 @@ const uploadSchema = z.object({
 type UploadFormData = z.infer<typeof uploadSchema>
 
 interface UploadFormProps {
-  userId: string
   onSuccess?: () => void
 }
 
-export default function UploadForm({ userId, onSuccess }: UploadFormProps) {
+export default function UploadForm({ onSuccess }: UploadFormProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
@@ -331,7 +329,7 @@ export default function UploadForm({ userId, onSuccess }: UploadFormProps) {
                       <ol className="mt-1 list-decimal list-inside space-y-1 text-xs">
                         <li>Go to your Supabase Dashboard</li>
                         <li>Navigate to Storage section</li>
-                        <li>Create a new bucket named "images"</li>
+                        <li>Create a new bucket named &quot;images&quot;</li>
                         <li>Make it public</li>
                         <li>Try uploading again</li>
                       </ol>

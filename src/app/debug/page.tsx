@@ -7,7 +7,11 @@ import { RefreshCw, CheckCircle, XCircle, AlertTriangle } from 'lucide-react'
 
 interface DebugInfo {
   user: User | null
-  profile: any
+  profile: {
+    id: string
+    username: string | null
+    updated_at: string
+  } | null
   canUploadToStorage: boolean
   canInsertPost: boolean
   storageErrors: string[]
@@ -20,7 +24,6 @@ export default function DebugPage() {
 
   const runDiagnostics = async () => {
     setLoading(true)
-    const errors: string[] = []
     const storageErrors: string[] = []
     const databaseErrors: string[] = []
 
@@ -222,7 +225,7 @@ export default function DebugPage() {
                     <p className="text-blue-800">• Database insert failed - execute enhanced_storage_fix.sql to fix RLS policies</p>
                   )}
                   {debugInfo.canUploadToStorage && debugInfo.canInsertPost && (
-                    <p className="text-green-800">• All systems working! Upload should function properly.</p>
+                    <p className="text-blue-800">• All systems working! Upload should function properly.</p>
                   )}
                 </div>
               </div>
