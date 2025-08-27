@@ -39,3 +39,23 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# temporary files and scripts
+*.sh
+*.bat
+fix-*
+verify-*
+setup-*
+safe-*
+quick-*
+commit-*
+
+# SSH keys and sensitive files
+*.pem
+*.key
+*.pub
+eval*
+
+# debug and development artifacts
+debug-*
+*.log

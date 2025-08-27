@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { User } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabaseClient'
-import { Camera, Home, Plus, User as UserIcon, LogOut, LogIn, Bug, Database } from 'lucide-react'
+import { Camera, Home, Plus, User as UserIcon, LogOut, LogIn } from 'lucide-react'
 
 export default function NavBar() {
   const [user, setUser] = useState<User | null>(null)
@@ -70,12 +70,6 @@ export default function NavBar() {
               <Link href={`/profile/${user.id}`} className="p-2 hover:bg-gray-100 rounded-full">
                 <UserIcon className="h-6 w-6" />
               </Link>
-              <Link href="/debug" className="p-2 hover:bg-gray-100 rounded-full" title="Debug RLS">
-                <Bug className="h-5 w-5 text-gray-600" />
-              </Link>
-              <Link href="/debug-database" className="p-2 hover:bg-gray-100 rounded-full" title="Database Debug">
-                <Database className="h-5 w-5 text-gray-600" />
-              </Link>
               <button
                 onClick={handleSignOut}
                 className="p-2 hover:bg-gray-100 rounded-full"
@@ -85,12 +79,6 @@ export default function NavBar() {
             </>
           ) : (
             <>
-              <Link href="/debug" className="p-2 hover:bg-gray-100 rounded-full" title="Debug RLS">
-                <Bug className="h-5 w-5 text-gray-600" />
-              </Link>
-              <Link href="/debug-database" className="p-2 hover:bg-gray-100 rounded-full" title="Database Debug">
-                <Database className="h-5 w-5 text-gray-600" />
-              </Link>
               <Link href="/auth/login" className="flex items-center space-x-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
                 <LogIn className="h-4 w-4" />
                 <span>Login</span>
