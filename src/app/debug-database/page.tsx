@@ -38,10 +38,18 @@ export default function DatabaseDebugPage() {
             .select('*')
             .limit(1)
 
-          tableChecks.push({
-            name: tableName,
-            exists: true
-          })
+          if (error) {
+            tableChecks.push({
+              name: tableName,
+              exists: false,
+              error: error.message
+            })
+          } else {
+            tableChecks.push({
+              name: tableName,
+              exists: true
+            })
+          }
         } catch (err: unknown) {
           tableChecks.push({
             name: tableName,

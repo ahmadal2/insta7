@@ -81,10 +81,13 @@ export default function DebugAuthPage() {
 
       // Test 4: Check RLS policies
       try {
-        const policyCheckResult = await supabase
-          .rpc('get_policies_for_table', { table_name: 'posts' })
-          .then(() => 'RPC available')
-          .catch(() => 'Could not check policies')
+        let policyCheckResult: string
+        try {
+          await supabase.rpc('get_policies_for_table', { table_name: 'posts' })
+          policyCheckResult = 'RPC available'
+        } catch {
+          policyCheckResult = 'Could not check policies'
+        }
 
         results.push(`ℹ️ Policy check: ${policyCheckResult}`);
       } catch {
