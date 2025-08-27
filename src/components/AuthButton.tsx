@@ -20,7 +20,7 @@ export default function AuthButton({ user, className = '' }: AuthButtonProps) {
     try {
       await supabase.auth.signOut()
       router.push('/')
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error signing out:', error)
     } finally {
       setLoading(false)

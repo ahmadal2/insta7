@@ -74,8 +74,8 @@ export default function LoginPage() {
         // Force router refresh to ensure navigation works
         window.location.href = '/'
       }
-    } catch (err) {
-      console.error('Login error:', err)
+    } catch (error) {
+      console.error('Login error:', error)
       setError('An unexpected error occurred. Please try again.')
     } finally {
       setLoading(false)
@@ -104,7 +104,7 @@ export default function LoginPage() {
         setShowForgotPassword(false)
         setResetEmail('')
       }
-    } catch (err) {
+    } catch (error) {
       setError('An unexpected error occurred. Please try again.')
     } finally {
       setResetLoading(false)

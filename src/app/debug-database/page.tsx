@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { User } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabaseClient'
 import { CheckCircle, XCircle, AlertCircle, Database, User as UserIcon } from 'lucide-react'
@@ -17,15 +17,11 @@ export default function DatabaseDebugPage() {
   const [tables, setTables] = useState<TableCheck[]>([])
   const [testResults, setTestResults] = useState<{ [key: string]: {
     success: boolean
-    data?: any
+    data?: unknown
     error?: string
-  } }>({}))
+  } }>({})
 
-  useEffect(() => {
-    checkDatabaseSetup()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const checkDatabaseSetup = async () => {
+  const checkDatabaseSetup = useCallback(async () => {
     try {
       // Get current user
       const { data: { session } } = await supabase.auth.getSession()
@@ -37,7 +33,7 @@ export default function DatabaseDebugPage() {
 
       for (const tableName of tablesToCheck) {
         try {
-          await supabase
+          const { data, error } = await supabase
             .from(tableName)
             .select('*')
             .limit(1)
@@ -66,12 +62,16 @@ export default function DatabaseDebugPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    checkDatabaseSetup()
+  }, [checkDatabaseSetup])
 
   const testOperations = async (currentUser: User) => {
     const results: { [key: string]: {
       success: boolean
-      data?: any
+      data?: unknown
       error?: string
     } } = {}
 
@@ -97,7 +97,7 @@ export default function DatabaseDebugPage() {
 
     // Test comments table access
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('comments')
         .select('*')
         .limit(1)
@@ -115,7 +115,7 @@ export default function DatabaseDebugPage() {
 
     // Test follows table access
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('follows')
         .select('*')
         .limit(1)
@@ -186,7 +186,7 @@ export default function DatabaseDebugPage() {
           <div className="mb-6">
             <h2 className="text-lg font-semibold mb-3">Database Tables</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {tables.map((table) => (
+              {tables.map((table: TableCheck) => (
                 <div key={table.name} className="flex items-center justify-between p-3 border rounded">
                   <div className="flex items-center space-x-2">
                     <StatusIcon exists={table.exists} />

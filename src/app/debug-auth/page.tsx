@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
+import type { Session, AuthError } from '@supabase/supabase-js'
 
 export default function DebugAuthPage() {
   const [authInfo, setAuthInfo] = useState<{
-    session: any
-    error: any
+    session: Session | null
+    error: AuthError | null
   } | null>(null)
   const [testResults, setTestResults] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
@@ -90,7 +91,7 @@ export default function DebugAuthPage() {
         results.push('ℹ️ Policy check: Policies seem to be set up');
       }
 
-    } catch (error) {
+    } catch (error: unknown) {
       results.push(`❌ Unexpected error: ${error}`)
     }
 
@@ -125,7 +126,7 @@ export default function DebugAuthPage() {
 
             {testResults.length > 0 && (
               <div className="space-y-2">
-                {testResults.map((result, index) => (
+                {testResults.map((result: string, index: number) => (
                   <div
                     key={index}
                     className={`p-3 rounded text-sm ${

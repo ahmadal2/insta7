@@ -248,7 +248,7 @@ export default function Home() {
           </div>
         ) : (
           <div className="space-y-6">
-            {posts.map((post) => (
+            {posts.map((post: Post) => (
               <PostCard key={post.id} post={post} currentUser={user} />
             ))}
           </div>

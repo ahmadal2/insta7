@@ -108,7 +108,7 @@ export default function DebugPage() {
         databaseErrors
       })
 
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Debug error:', error)
     } finally {
       setLoading(false)
@@ -181,7 +181,7 @@ export default function DebugPage() {
                   {debugInfo.storageErrors.length > 0 && (
                     <div className="bg-red-50 border border-red-200 rounded p-2">
                       <p className="font-medium text-red-800">Storage Errors:</p>
-                      {debugInfo.storageErrors.map((error, index) => (
+                      {debugInfo.storageErrors.map((error: string, index: number) => (
                         <p key={index} className="text-red-700">{error}</p>
                       ))}
                     </div>
@@ -200,7 +200,7 @@ export default function DebugPage() {
                   {debugInfo.databaseErrors.length > 0 && (
                     <div className="bg-red-50 border border-red-200 rounded p-2">
                       <p className="font-medium text-red-800">Database Errors:</p>
-                      {debugInfo.databaseErrors.map((error, index) => (
+                      {debugInfo.databaseErrors.map((error: string, index: number) => (
                         <p key={index} className="text-red-700">{error}</p>
                       ))}
                     </div>

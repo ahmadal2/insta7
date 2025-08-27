@@ -150,13 +150,13 @@ export default function ProfilePage() {
         console.log('Attempting to unfollow user:', userId)
         await unfollowUser(userId)
         setIsFollowing(false)
-        setStats(prev => ({ ...prev, followersCount: prev.followersCount - 1 }))
+        setStats((prev) => ({ ...prev, followersCount: prev.followersCount - 1 }))
         console.log('Successfully unfollowed user')
       } else {
         console.log('Attempting to follow user:', userId)
         await followUser(userId)
         setIsFollowing(true)
-        setStats(prev => ({ ...prev, followersCount: prev.followersCount + 1 }))
+        setStats((prev) => ({ ...prev, followersCount: prev.followersCount + 1 }))
         console.log('Successfully followed user')
       }
     } catch (error: unknown) {
