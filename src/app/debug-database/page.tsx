@@ -213,7 +213,7 @@ export default function DatabaseDebugPage() {
             <div className="mb-6">
               <h2 className="text-lg font-semibold mb-3">Operation Tests</h2>
               <div className="space-y-3">
-                {Object.entries(testResults).map(([operation, result]) => (
+                {Object.entries(testResults).map(([operation, result]: [string, { success: boolean; data?: unknown; error?: string }]) => (
                   <div key={operation} className="p-3 border rounded">
                     <div className="flex items-center space-x-2 mb-2">
                       <StatusIcon success={result.success} />
@@ -226,7 +226,7 @@ export default function DatabaseDebugPage() {
                     )}
                     {result.data && (
                       <p className="text-sm text-green-600">
-                        Data found: {JSON.stringify(result.data, null, 2)}
+                        Data found: {JSON.stringify(result.data as object, null, 2)}
                       </p>
                     )}
                   </div>
