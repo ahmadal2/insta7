@@ -4,11 +4,10 @@
   
   # Output directory where the built files are located
   publish = ".next"
-  
-  # Node.js version
-  environment = { NODE_VERSION = "18" }
 
 [build.environment]
+  # Node.js version
+  NODE_VERSION = "18"
   # Environment variables for the build process
   NEXT_TELEMETRY_DISABLED = "1"
 
