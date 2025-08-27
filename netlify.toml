@@ -7,7 +7,7 @@
 
 [build.environment]
   # Node.js version
-  NODE_VERSION = "18"
+  NODE_VERSION = "20"
   # Environment variables for the build process
   NEXT_TELEMETRY_DISABLED = "1"
 
