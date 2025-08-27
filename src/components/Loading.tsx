@@ -39,21 +39,22 @@ export default function Loading({
   }
 
   const containerClasses = fullScreen 
-    ? 'fixed inset-0 bg-white bg-opacity-90 flex items-center justify-center z-50'
+    ? 'fixed inset-0 bg-background/90 backdrop-blur-md flex items-center justify-center z-50'
     : 'flex items-center justify-center p-4'
 
   return (
     <div className={containerClasses}>
-      <div className="flex flex-col items-center space-y-3">
-        {/* Instagram-style loading spinner */}
+      <div className="flex flex-col items-center space-y-4">
+        {/* Modern loading spinner with gradient */}
         <div className={`${sizeClasses[size]} relative`}>
-          <div className="absolute inset-0 rounded-full border-2 border-gray-200"></div>
-          <div className={`absolute inset-0 rounded-full border-2 border-transparent border-t-pink-500 animate-spin`}></div>
+          <div className="absolute inset-0 rounded-full border-2 border-border/30"></div>
+          <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-primary animate-spin"></div>
+          <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-primary/20 to-secondary/20 animate-pulse"></div>
         </div>
         
         {/* Loading text with animated dots */}
         {text && (
-          <div className={`${textSizeClasses[size]} text-gray-600 font-medium min-w-[80px] text-center`}>
+          <div className={`${textSizeClasses[size]} text-muted-foreground font-medium min-w-[80px] text-center`}>
             {text}{dots}
           </div>
         )}
@@ -65,28 +66,30 @@ export default function Loading({
 // Skeleton loading component for posts
 export function PostSkeleton() {
   return (
-    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden mb-6 animate-pulse">
+    <div className="bg-card/80 backdrop-blur-xl border border-border rounded-2xl overflow-hidden mb-6 animate-pulse shadow-lg">
       {/* Header skeleton */}
-      <div className="flex items-center p-4">
-        <div className="w-8 h-8 bg-gray-300 rounded-full"></div>
-        <div className="ml-3 space-y-2">
-          <div className="h-3 bg-gray-300 rounded w-24"></div>
-          <div className="h-2 bg-gray-300 rounded w-16"></div>
+      <div className="flex items-center p-4 border-b border-border/50">
+        <div className="w-10 h-10 bg-gradient-to-br from-muted to-secondary rounded-full"></div>
+        <div className="ml-3 space-y-2 flex-1">
+          <div className="h-3 bg-gradient-to-r from-muted to-secondary rounded-lg w-24"></div>
+          <div className="h-2 bg-gradient-to-r from-muted to-secondary rounded-lg w-16"></div>
         </div>
       </div>
       
       {/* Image skeleton */}
-      <div className="w-full h-64 bg-gray-300"></div>
+      <div className="w-full h-64 bg-gradient-to-br from-muted via-secondary to-muted animate-pulse"></div>
       
       {/* Content skeleton */}
-      <div className="p-4 space-y-3">
-        <div className="flex space-x-4">
-          <div className="w-6 h-6 bg-gray-300 rounded"></div>
-          <div className="w-6 h-6 bg-gray-300 rounded"></div>
-          <div className="w-6 h-6 bg-gray-300 rounded"></div>
+      <div className="p-4 space-y-4">
+        <div className="flex space-x-6">
+          <div className="w-8 h-8 bg-gradient-to-br from-muted to-secondary rounded-xl"></div>
+          <div className="w-8 h-8 bg-gradient-to-br from-muted to-secondary rounded-xl"></div>
+          <div className="w-8 h-8 bg-gradient-to-br from-muted to-secondary rounded-xl"></div>
         </div>
-        <div className="h-3 bg-gray-300 rounded w-3/4"></div>
-        <div className="h-3 bg-gray-300 rounded w-1/2"></div>
+        <div className="space-y-2">
+          <div className="h-3 bg-gradient-to-r from-muted to-secondary rounded-lg w-3/4"></div>
+          <div className="h-3 bg-gradient-to-r from-muted to-secondary rounded-lg w-1/2"></div>
+        </div>
       </div>
     </div>
   )
@@ -95,14 +98,19 @@ export function PostSkeleton() {
 // Page loading component
 export function PageLoader() {
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="text-center">
-        <div className="relative w-16 h-16 mx-auto mb-4">
-          <div className="absolute inset-0 rounded-full border-4 border-gray-200"></div>
-          <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-pink-500 animate-spin"></div>
+    <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="text-center space-y-6">
+        <div className="relative w-20 h-20 mx-auto">
+          <div className="absolute inset-0 rounded-full border-4 border-border/30"></div>
+          <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-primary animate-spin"></div>
+          <div className="absolute inset-2 rounded-full bg-gradient-to-tr from-primary/20 to-secondary/20 animate-pulse"></div>
         </div>
-        <h2 className="text-xl font-semibold text-gray-700 mb-2">Ahmad Insta</h2>
-        <p className="text-gray-500">Loading your feed...</p>
+        <div className="space-y-2">
+          <h2 className="text-2xl font-bold text-foreground bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+            Ahmad Insta
+          </h2>
+          <p className="text-muted-foreground animate-pulse">Loading your feed...</p>
+        </div>
       </div>
     </div>
   )

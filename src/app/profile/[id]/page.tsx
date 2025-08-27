@@ -179,64 +179,85 @@ export default function ProfilePage() {
     }
   }
 
+  const handlePostDelete = (postId: string) => {
+    setPosts(prevPosts => prevPosts.filter(post => post.id !== postId))
+    setStats(prevStats => ({
+      ...prevStats,
+      postsCount: prevStats.postsCount - 1
+    }))
+  }
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="relative w-16 h-16 mx-auto">
+            <div className="absolute inset-0 rounded-full border-4 border-border/30"></div>
+            <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-primary animate-spin"></div>
+          </div>
+          <p className="text-muted-foreground">Loading profile...</p>
+        </div>
       </div>
     )
   }
 
   if (!profile) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-2">Profile not found</h1>
-          <Link href="/" className="text-blue-500 hover:underline">Go back to feed</Link>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <h1 className="text-2xl font-bold text-foreground">Profile not found</h1>
+          <Link href="/" className="inline-block px-6 py-3 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-colors">
+            Go back to feed
+          </Link>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto py-8 px-4">
+    <div className="min-h-screen bg-background">
+      <div className="max-w-4xl mx-auto py-4 sm:py-8 px-3 sm:px-4">
         {/* Profile Header */}
-        <div className="bg-white rounded-lg p-8 mb-8 shadow-sm">
-          <div className="flex items-start space-x-8">
-            <div className="w-32 h-32 bg-gray-300 rounded-full flex items-center justify-center">
-              {profile.avatar_url ? (
-                <img src={profile.avatar_url} alt="Profile" className="w-full h-full rounded-full object-cover" />
-              ) : (
-                <UserIcon className="w-16 h-16 text-gray-600" />
-              )}
+        <div className="bg-card/80 backdrop-blur-xl border border-border rounded-2xl p-6 sm:p-8 mb-6 sm:mb-8 shadow-lg hover:shadow-xl transition-all duration-300">
+          <div className="flex flex-col sm:flex-row items-start space-y-6 sm:space-y-0 sm:space-x-8">
+            <div className="relative mx-auto sm:mx-0">
+              <div className="w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full flex items-center justify-center ring-4 ring-border/50 overflow-hidden">
+                {profile.avatar_url ? (
+                  <img src={profile.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <UserIcon className="w-12 h-12 sm:w-16 sm:h-16 text-muted-foreground" />
+                )}
+              </div>
+              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-4 border-card"></div>
             </div>
-            <div className="flex-1">
-              <div className="flex items-center space-x-4 mb-4">
-                <h1 className="text-2xl font-bold">{profile.username || 'Anonymous'}</h1>
+            <div className="flex-1 text-center sm:text-left">
+              <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 mb-6">
+                <h1 className="text-2xl sm:text-3xl font-bold text-foreground bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+                  {profile.username || 'Anonymous'}
+                </h1>
                 
                 {/* Follow/Edit Button */}
                 {currentUser && currentUser.id === userId ? (
                   <Link
                     href={`/profile/${userId}/edit`}
-                    className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="inline-flex items-center space-x-2 px-4 py-2 border border-border bg-secondary/50 text-foreground rounded-xl hover:bg-secondary transition-all duration-200 font-medium"
                   >
                     <Settings className="h-4 w-4" />
                     <span>Edit Profile</span>
                   </Link>
                 ) : currentUser ? (
-                  <div>
+                  <div className="space-y-2">
                     <button
                       onClick={handleFollowToggle}
                       disabled={followLoading}
-                      className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors disabled:opacity-50 ${
+                      className={`flex items-center space-x-2 px-6 py-3 rounded-xl transition-all duration-200 disabled:opacity-50 font-semibold ${
                         isFollowing
-                          ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                          : 'bg-blue-500 text-white hover:bg-blue-600'
+                          ? 'bg-secondary text-foreground hover:bg-destructive/10 hover:text-destructive border border-border'
+                          : 'bg-gradient-to-r from-primary to-primary/90 text-primary-foreground hover:shadow-lg hover:scale-[1.02]'
                       }`}
                     >
                       {followLoading ? (
-                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                        <Loader2 className="w-4 h-4 animate-spin" />
                       ) : isFollowing ? (
                         <UserMinus className="h-4 w-4" />
                       ) : (
@@ -247,11 +268,11 @@ export default function ProfilePage() {
                     
                     {/* Follow Error Display */}
                     {followError && (
-                      <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-600 max-w-sm">
+                      <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-xl text-xs text-destructive backdrop-blur-sm">
                         <p className="font-medium">Follow Error:</p>
                         <p>{followError}</p>
                         {followError.includes('database setup') && (
-                          <p className="mt-1 text-blue-600">
+                          <p className="mt-1 text-primary">
                             Please check the FIX_COMMENTS_AND_FOLLOWS.md file for setup instructions.
                           </p>
                         )}
@@ -262,41 +283,50 @@ export default function ProfilePage() {
               </div>
               
               {/* User Statistics */}
-              <div className="flex space-x-8 mb-4">
-                <div className="text-center">
-                  <div className="text-xl font-bold">{stats.postsCount}</div>
-                  <div className="text-gray-600">Posts</div>
+              <div className="grid grid-cols-3 gap-4 sm:gap-8 mb-6">
+                <div className="text-center p-3 bg-muted/30 rounded-xl">
+                  <div className="text-xl sm:text-2xl font-bold text-foreground">{stats.postsCount}</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground font-medium">Posts</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-xl font-bold">{stats.followersCount}</div>
-                  <div className="text-gray-600">Followers</div>
+                <div className="text-center p-3 bg-muted/30 rounded-xl">
+                  <div className="text-xl sm:text-2xl font-bold text-foreground">{stats.followersCount}</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground font-medium">Followers</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-xl font-bold">{stats.followingCount}</div>
-                  <div className="text-gray-600">Following</div>
+                <div className="text-center p-3 bg-muted/30 rounded-xl">
+                  <div className="text-xl sm:text-2xl font-bold text-foreground">{stats.followingCount}</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground font-medium">Following</div>
                 </div>
               </div>
               
               {/* Bio */}
               {profile.bio && (
-                <p className="text-gray-700">{profile.bio}</p>
+                <div className="p-4 bg-muted/50 rounded-xl">
+                  <p className="text-foreground leading-relaxed">{profile.bio}</p>
+                </div>
               )}
             </div>
           </div>
         </div>
 
         {/* Posts */}
-        <div className="bg-white rounded-lg shadow-sm p-4">
-          <h2 className="text-lg font-semibold mb-4">Posts</h2>
+        <div className="bg-card/80 backdrop-blur-xl border border-border rounded-2xl shadow-lg p-4 sm:p-6">
+          <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-6 flex items-center space-x-2">
+            <Grid className="h-5 w-5 text-primary" />
+            <span>Posts</span>
+          </h2>
           {(!posts || posts.length === 0) ? (
-            <div className="text-center py-12">
-              <Grid className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">No posts yet</p>
+            <div className="text-center py-12 sm:py-16">
+              <div className="relative mb-6">
+                <div className="absolute inset-0 bg-gradient-to-br from-muted/30 to-secondary/30 rounded-full blur-xl opacity-50"></div>
+                <Grid className="relative h-12 w-12 sm:h-16 sm:w-16 text-muted-foreground mx-auto" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground mb-2">No posts yet</h3>
+              <p className="text-muted-foreground text-sm sm:text-base">When {profile.username || 'this user'} shares photos, they'll appear here.</p>
             </div>
           ) : (
             <div className="space-y-6">
               {posts.map((post) => (
-                <PostCard key={post.id} post={post} currentUser={currentUser} />
+                <PostCard key={post.id} post={post} currentUser={currentUser} onPostDelete={handlePostDelete} />
               ))}
             </div>
           )}

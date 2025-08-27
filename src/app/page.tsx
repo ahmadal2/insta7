@@ -146,33 +146,40 @@ export default function Home() {
     setFeedType(type)
   }
 
+  const handlePostDelete = (postId: string) => {
+    setPosts(prevPosts => prevPosts.filter(post => post.id !== postId))
+  }
+
   if (loading) {
     return <PageLoader />
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-2xl mx-auto py-8 px-4">
+    <div className="min-h-screen bg-background transition-colors duration-300">
+      <div className="max-w-2xl mx-auto py-4 sm:py-8 px-3 sm:px-4">
         {/* Welcome Section */}
         {!user && (
-          <div className="bg-white rounded-lg p-8 mb-8 text-center shadow-sm">
-            <Camera className="h-16 w-16 text-blue-500 mx-auto mb-4" />
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <div className="bg-card/80 backdrop-blur-xl border border-border rounded-2xl p-6 sm:p-8 mb-6 sm:mb-8 text-center shadow-lg hover:shadow-xl transition-all duration-300">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full blur-xl opacity-50"></div>
+              <Camera className="relative h-16 w-16 text-primary mx-auto mb-4 drop-shadow-sm" />
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-3 bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
               Welcome to AhmadInsta
             </h1>
-            <p className="text-gray-600 mb-6">
+            <p className="text-muted-foreground mb-6 text-sm sm:text-base">
               Share your moments with the world
             </p>
-            <div className="flex justify-center space-x-4">
+            <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
               <Link
                 href="/auth/login"
-                className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-primary to-primary/90 text-primary-foreground rounded-xl hover:shadow-lg hover:scale-105 transition-all duration-200 font-medium backdrop-blur-sm"
               >
                 Sign In
               </Link>
               <Link
                 href="/auth/register"
-                className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                className="w-full sm:w-auto px-6 py-3 border border-border bg-card/50 text-foreground rounded-xl hover:bg-secondary/50 hover:shadow-md hover:scale-105 transition-all duration-200 font-medium backdrop-blur-sm"
               >
                 Sign Up
               </Link>
@@ -182,29 +189,31 @@ export default function Home() {
 
         {/* Feed Type Switcher for logged in users */}
         {user && (
-          <div className="bg-white rounded-lg p-2 mb-6 shadow-sm">
-            <div className="flex space-x-2">
+          <div className="bg-card/80 backdrop-blur-xl border border-border rounded-2xl p-2 mb-6 shadow-lg">
+            <div className="flex space-x-1">
               <button
                 onClick={() => handleFeedSwitch('public')}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+                className={`flex items-center space-x-2 px-4 py-3 rounded-xl transition-all duration-200 flex-1 justify-center font-medium ${
                   feedType === 'public'
-                    ? 'bg-blue-500 text-white'
-                    : 'text-gray-600 hover:bg-gray-100'
+                    ? 'bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-lg scale-105'
+                    : 'text-muted-foreground hover:bg-secondary/80 hover:text-foreground'
                 }`}
               >
                 <Globe className="h-4 w-4" />
-                <span>Public Feed</span>
+                <span className="hidden sm:inline">Public Feed</span>
+                <span className="sm:hidden">Public</span>
               </button>
               <button
                 onClick={() => handleFeedSwitch('following')}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+                className={`flex items-center space-x-2 px-4 py-3 rounded-xl transition-all duration-200 flex-1 justify-center font-medium ${
                   feedType === 'following'
-                    ? 'bg-blue-500 text-white'
-                    : 'text-gray-600 hover:bg-gray-100'
+                    ? 'bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-lg scale-105'
+                    : 'text-muted-foreground hover:bg-secondary/80 hover:text-foreground'
                 }`}
               >
                 <Users className="h-4 w-4" />
-                <span>Following</span>
+                <span className="hidden sm:inline">Following</span>
+                <span className="sm:hidden">Follow</span>
               </button>
             </div>
           </div>
@@ -212,12 +221,12 @@ export default function Home() {
 
         {/* Create Post Button for logged in users */}
         {user && (
-          <div className="bg-white rounded-lg p-4 mb-6 shadow-sm">
+          <div className="bg-card/80 backdrop-blur-xl border border-border rounded-2xl p-4 mb-6 shadow-lg hover:shadow-xl transition-all duration-300">
             <Link
               href="/upload"
-              className="flex items-center justify-center space-x-2 w-full py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              className="flex items-center justify-center space-x-2 w-full py-4 bg-gradient-to-r from-primary via-primary to-primary/90 text-primary-foreground rounded-xl hover:shadow-lg hover:scale-[1.02] transition-all duration-200 font-semibold group"
             >
-              <Plus className="h-5 w-5" />
+              <Plus className="h-5 w-5 group-hover:rotate-90 transition-transform duration-200" />
               <span>Create New Post</span>
             </Link>
           </div>
@@ -231,20 +240,23 @@ export default function Home() {
             ))}
           </div>
         ) : posts.length === 0 ? (
-          <div className="bg-white rounded-lg p-8 text-center shadow-sm">
-            <Camera className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          <div className="bg-card/80 backdrop-blur-xl border border-border rounded-2xl p-6 sm:p-8 text-center shadow-lg">
+            <div className="relative mb-6">
+              <div className="absolute inset-0 bg-gradient-to-br from-muted/30 to-secondary/30 rounded-full blur-xl opacity-50"></div>
+              <Camera className="relative h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            </div>
+            <h3 className="text-lg font-semibold text-foreground mb-2">
               No posts yet
             </h3>
-            <p className="text-gray-600 mb-4">
+            <p className="text-muted-foreground mb-6 text-sm sm:text-base">
               {feedType === 'following' ? 'No posts from people you follow yet.' : 'Be the first to share a moment!'}
             </p>
             {user && (
               <Link
                 href="/upload"
-                className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                className="inline-flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-primary to-primary/90 text-primary-foreground rounded-xl hover:shadow-lg hover:scale-105 transition-all duration-200 font-medium group"
               >
-                <Plus className="h-4 w-4" />
+                <Plus className="h-4 w-4 group-hover:rotate-90 transition-transform duration-200" />
                 <span>Create Post</span>
               </Link>
             )}
@@ -252,7 +264,7 @@ export default function Home() {
         ) : (
           <div className="space-y-6">
             {posts.map((post: Post) => (
-              <PostCard key={post.id} post={post} currentUser={user} />
+              <PostCard key={post.id} post={post} currentUser={user} onPostDelete={handlePostDelete} />
             ))}
           </div>
         )}

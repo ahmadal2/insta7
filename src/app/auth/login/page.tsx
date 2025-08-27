@@ -112,66 +112,70 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
-        <div>
-          <div className="flex justify-center">
-            <Camera className="h-12 w-12 text-blue-500" />
+        <div className="bg-card/80 backdrop-blur-xl border border-border rounded-2xl p-8 shadow-xl">
+          <div className="text-center mb-8">
+            <div className="flex justify-center mb-6">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full blur-xl opacity-50"></div>
+                <Camera className="relative h-16 w-16 text-primary drop-shadow-sm" />
+              </div>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-foreground bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+              Sign in to AhmadInsta
+            </h2>
           </div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Sign in to AhmadInsta
-          </h2>
-        </div>
         
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
+        <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md">
+            <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-xl backdrop-blur-sm">
               {error}
             </div>
           )}
           
           {resetMessage && (
-            <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-md">
+            <div className="bg-green-500/10 border border-green-500/20 text-green-600 dark:text-green-400 px-4 py-3 rounded-xl backdrop-blur-sm">
               {resetMessage}
             </div>
           )}
 
           {!showForgotPassword ? (
             <>
-              <div className="space-y-4">
+              <div className="space-y-5">
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
                     Email address
                   </label>
-                  <div className="mt-1 relative">
-                    <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
                     <input
                       {...register('email')}
                       type="email"
-                      className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      className="appearance-none block w-full pl-10 pr-3 py-3 border border-border bg-background rounded-xl placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-200"
                       placeholder="Enter your email"
                     />
                   </div>
                   {errors.email && (
-                    <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+                    <p className="mt-2 text-sm text-destructive">{errors.email.message}</p>
                   )}
                 </div>
 
                 <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="password" className="block text-sm font-medium text-foreground mb-2">
                     Password
                   </label>
-                  <div className="mt-1 relative">
-                    <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
                     <input
                       {...register('password')}
                       type="password"
-                      className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      className="appearance-none block w-full pl-10 pr-3 py-3 border border-border bg-background rounded-xl placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-200"
                       placeholder="Enter your password"
                     />
                   </div>
                   {errors.password && (
-                    <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+                    <p className="mt-2 text-sm text-destructive">{errors.password.message}</p>
                   )}
                 </div>
               </div>
@@ -180,7 +184,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowForgotPassword(true)}
-                  className="text-sm text-blue-600 hover:text-blue-500"
+                  className="text-sm text-primary hover:text-primary/80 transition-colors"
                 >
                   Forgot your password?
                 </button>
@@ -190,7 +194,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="group relative w-full flex justify-center py-4 px-4 border border-transparent text-sm font-semibold rounded-xl text-primary-foreground bg-gradient-to-r from-primary to-primary/90 hover:shadow-lg hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all duration-200"
                 >
                   {loading ? (
                     <div className="flex items-center space-x-2">
@@ -205,18 +209,18 @@ export default function LoginPage() {
             </>
           ) : (
             <>
-              <div className="space-y-4">
+              <div className="space-y-5">
                 <div>
-                  <label htmlFor="resetEmail" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="resetEmail" className="block text-sm font-medium text-foreground mb-2">
                     Email address for password reset
                   </label>
-                  <div className="mt-1 relative">
-                    <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
                     <input
                       type="email"
                       value={resetEmail}
                       onChange={(e) => setResetEmail(e.target.value)}
-                      className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      className="appearance-none block w-full pl-10 pr-3 py-3 border border-border bg-background rounded-xl placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-200"
                       placeholder="Enter your email address"
                     />
                   </div>
@@ -228,7 +232,7 @@ export default function LoginPage() {
                   type="button"
                   onClick={handleForgotPassword}
                   disabled={resetLoading}
-                  className="flex-1 flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                  className="flex-1 flex justify-center py-3 px-4 border border-transparent text-sm font-semibold rounded-xl text-primary-foreground bg-gradient-to-r from-primary to-primary/90 hover:shadow-lg hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:hover:scale-100 transition-all duration-200"
                 >
                   {resetLoading ? (
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -243,7 +247,7 @@ export default function LoginPage() {
                     setResetEmail('')
                     setError(null)
                   }}
-                  className="flex-1 py-2 px-4 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="flex-1 py-3 px-4 border border-border text-sm font-semibold rounded-xl text-foreground bg-secondary/50 hover:bg-secondary transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
                 >
                   Back to Login
                 </button>
@@ -251,15 +255,16 @@ export default function LoginPage() {
             </>
           )}
 
-          <div className="text-center">
-            <span className="text-sm text-gray-600">
+          <div className="text-center pt-6 border-t border-border/50">
+            <span className="text-sm text-muted-foreground">
               Don&apos;t have an account?{' '}
-              <Link href="/auth/register" className="font-medium text-blue-600 hover:text-blue-500">
+              <Link href="/auth/register" className="font-medium text-primary hover:text-primary/80 transition-colors">
                 Sign up
               </Link>
             </span>
           </div>
         </form>
+        </div>
       </div>
     </div>
   )

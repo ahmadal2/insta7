@@ -20,6 +20,20 @@ export async function createPost(imageUrl: string, caption?: string) {
   return data
 }
 
+export async function deletePost(postId: string) {
+  const { data: { user }, error: userError } = await supabase.auth.getUser()
+  if (userError || !user) throw new Error('Not logged in!')
+
+  const { data, error } = await supabase
+    .from('posts')
+    .delete()
+    .eq('id', postId)
+    .eq('user_id', user.id)  // Extra safety check
+
+  if (error) throw error
+  return data
+}
+
 // COMMENT OPERATIONS
 export async function addComment(postId: string, text: string) {
   const { data: { user }, error: userError } = await supabase.auth.getUser()
