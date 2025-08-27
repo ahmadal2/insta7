@@ -232,7 +232,7 @@ export default function DatabaseDebugPage() {
                       </p>
                     )}
                   </div>
-                )})
+                )}
               </div>
             </div>
           )}
