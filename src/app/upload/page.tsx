@@ -76,7 +76,6 @@ export default function UploadPage() {
 
         <div className="bg-white rounded-lg shadow-sm p-6">
           <UploadForm 
-            userId={user.id} 
             onSuccess={handleUploadSuccess}
           />
         </div>
