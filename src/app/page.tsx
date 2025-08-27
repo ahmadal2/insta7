@@ -9,6 +9,9 @@ import { PostSkeleton, PageLoader } from '@/components/Loading'
 import { Camera, Plus, Globe, Users } from 'lucide-react'
 import Link from 'next/link'
 
+// Disable static generation and force dynamic rendering
+export const dynamic = 'force-dynamic'
+
 export default function Home() {
   const [posts, setPosts] = useState<Post[]>([])
   const [user, setUser] = useState<User | null>(null)

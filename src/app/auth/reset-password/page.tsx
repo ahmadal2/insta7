@@ -9,6 +9,9 @@ import { z } from 'zod'
 import { supabase } from '@/lib/supabaseClient'
 import { Camera, Lock, Loader2, Eye, EyeOff } from 'lucide-react'
 
+// Disable static generation and force dynamic rendering
+export const dynamic = 'force-dynamic'
+
 const resetPasswordSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters'),
   confirmPassword: z.string().min(6, 'Password must be at least 6 characters'),
