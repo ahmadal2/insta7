@@ -70,6 +70,15 @@ npm install
 
 ### 4. Database Setup
 
+You can set up the database in two ways:
+
+**Option 1: Use the provided SQL files**
+1. Find the `SUPABASE_SCHEMA.sql` file in your project root
+2. Copy its contents
+3. In your Supabase Dashboard, go to SQL Editor
+4. Paste the SQL commands and run them
+
+**Option 2: Manual setup**
 Run the following SQL commands in your Supabase SQL Editor:
 
 ```sql
@@ -165,6 +174,15 @@ CREATE POLICY "Users can manage their own reposts" ON reposts FOR ALL USING (aut
 
 ### 5. Storage Setup
 
+You can set up storage in two ways:
+
+**Option 1: Use the provided SQL file**
+1. Find the `SUPABASE_STORAGE.sql` file in your project root
+2. Copy its contents
+3. In your Supabase Dashboard, go to SQL Editor
+4. Paste the SQL commands and run them
+
+**Option 2: Manual setup**
 1. In Supabase Dashboard, go to Storage
 2. Create a new bucket called `posts`
 3. Make it public by updating the bucket policy:
@@ -175,6 +193,12 @@ CREATE POLICY "Authenticated users can upload posts" ON storage.objects FOR INSE
 CREATE POLICY "Users can update their own posts" ON storage.objects FOR UPDATE USING (bucket_id = 'posts' AND auth.uid() = owner);
 CREATE POLICY "Users can delete their own posts" ON storage.objects FOR DELETE USING (bucket_id = 'posts' AND auth.uid() = owner);
 ```
+
+**Option 3: Simple public bucket (recommended for development)**
+1. In Supabase Dashboard, go to Storage
+2. Create a new bucket called `posts`
+3. Go to the bucket settings
+4. Enable "Public bucket" option
 
 ### 6. Run the development server
 
