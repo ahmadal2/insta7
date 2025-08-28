@@ -28,7 +28,7 @@ function Home() {
   const [hasMore, setHasMore] = useState(true)
   const [page, setPage] = useState(0)
   const [isMobile, setIsMobile] = useState(false)
-  const subscriptionRef = useRef<any>(null)
+  const subscriptionRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
 
   // Detect mobile device
   useEffect(() => {
@@ -141,7 +141,7 @@ function Home() {
     )
 
     return () => subscription.unsubscribe()
-  }, []) // Remove feedType and fetchPostsOptimized to prevent infinite loops
+  }, [fetchPostsOptimized, feedType]) // Add fetchPostsOptimized and feedType to dependencies
 
   // Effect for feed type changes
   useEffect(() => {
@@ -150,7 +150,7 @@ function Home() {
       setHasMore(true)
       fetchPostsOptimized(feedType, 0, false)
     }
-  }, [feedType, loading]) // Only depend on feedType and loading
+  }, [feedType, loading, fetchPostsOptimized]) // Add fetchPostsOptimized to dependencies
 
   // Infinite scroll functionality
   const loadMorePosts = useCallback(() => {

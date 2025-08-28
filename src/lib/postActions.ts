@@ -279,17 +279,6 @@ export async function getPublicFeed(limit = 5, offset = 0) {
   return data as unknown as Post[] || []
 }
 
-// Helper function to get following user IDs
-async function getFollowingIds(userId: string): Promise<string> {
-  const { data, error } = await supabase
-    .from('follows')
-    .select('following_id')
-    .eq('follower_id', userId)
-
-  if (error || !data || data.length === 0) return ''
-  return data.map(f => f.following_id).join(',')
-}
-
 /**
  * Alternative functions for Solution 2 approach
  * (Database automatically sets user_id)

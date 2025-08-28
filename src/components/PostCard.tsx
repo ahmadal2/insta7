@@ -43,7 +43,11 @@ function PostCard({ post, currentUser, onPostDelete, lazy = true }: PostCardProp
   const [saveLoading, setSaveLoading] = useState(false)
   const router = useRouter()
   const menuRef = useRef<HTMLDivElement>(null)
-  const subscriptionRef = useRef<any>(null)
+  const subscriptionRef = useRef<{
+    likes: ReturnType<typeof supabase.channel>,
+    comments: ReturnType<typeof supabase.channel>,
+    reposts: ReturnType<typeof supabase.channel>
+  } | null>(null)
 
   const {
     register,

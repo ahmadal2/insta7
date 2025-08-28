@@ -26,7 +26,10 @@ function ProfilePage() {
     followingCount: 0
   })
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
-  const subscriptionRef = useRef<any>(null)
+  const subscriptionRef = useRef<{
+    posts: ReturnType<typeof supabase.channel>,
+    follows: ReturnType<typeof supabase.channel>
+  } | null>(null)
 
   useEffect(() => {
     const fetchData = async () => {

@@ -11,7 +11,6 @@ interface OptimizedImageProps {
   onLoad?: () => void
   onError?: () => void
   width?: number
-  height?: number
   aspectRatio?: string
   objectFit?: React.CSSProperties['objectFit']
 }
@@ -25,7 +24,6 @@ export default function OptimizedImage({
   onLoad,
   onError,
   width,
-  height,
   aspectRatio = '1 / 1',
   objectFit = 'cover'
 }: OptimizedImageProps) {
