@@ -45,8 +45,8 @@ export default function Loading({
   return (
     <div className={containerClasses}>
       <div className="flex flex-col items-center space-y-4">
-        {/* Modern loading spinner with gradient */}
-        <div className={`${sizeClasses[size]} relative`}>
+        {/* Modern loading spinner with gradient and glass effect */}
+        <div className={`${sizeClasses[size]} relative glass rounded-full`}>
           <div className="absolute inset-0 rounded-full border-2 border-border/30"></div>
           <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-primary animate-spin"></div>
           <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-primary/20 to-secondary/20 animate-pulse"></div>
@@ -54,7 +54,7 @@ export default function Loading({
         
         {/* Loading text with animated dots */}
         {text && (
-          <div className={`${textSizeClasses[size]} text-muted-foreground font-medium min-w-[80px] text-center`}>
+          <div className={`${textSizeClasses[size]} text-muted-foreground font-medium min-w-[80px] text-center glass px-4 py-2 rounded-full`}>
             {text}{dots}
           </div>
         )}
@@ -63,10 +63,10 @@ export default function Loading({
   )
 }
 
-// Skeleton loading component for posts - optimized for mobile
+// Skeleton loading component for posts - optimized for mobile with glass effect
 export function PostSkeleton() {
   return (
-    <div className="bg-card/80 backdrop-blur-xl border border-border rounded-2xl overflow-hidden mb-6 animate-pulse shadow-lg">
+    <div className="bg-card/80 backdrop-blur-xl border border-border rounded-2xl overflow-hidden mb-6 animate-pulse shadow-lg glass">
       {/* Header skeleton */}
       <div className="flex items-center p-4 border-b border-border/50">
         <div className="w-10 h-10 bg-gradient-to-br from-muted to-secondary rounded-full"></div>
@@ -95,12 +95,12 @@ export function PostSkeleton() {
   )
 }
 
-// Page loading component - optimized for mobile
+// Page loading component - optimized for mobile with glass effect
 export function PageLoader() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center">
       <div className="text-center space-y-6">
-        <div className="relative w-20 h-20 mx-auto">
+        <div className="relative w-20 h-20 mx-auto glass rounded-full">
           <div className="absolute inset-0 rounded-full border-4 border-border/30"></div>
           <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-primary animate-spin"></div>
           <div className="absolute inset-2 rounded-full bg-gradient-to-tr from-primary/20 to-secondary/20 animate-pulse"></div>

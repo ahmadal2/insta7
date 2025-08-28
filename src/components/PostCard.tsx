@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, memo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -8,7 +8,7 @@ import { z } from 'zod'
 import { User } from '@supabase/supabase-js'
 import { supabase, Post, Comment } from '@/lib/supabaseClient'
 import { repostPost, unrepostPost, deletePost, deleteComment, followUser, unfollowUser, checkIfFollowing } from '@/lib/postActions'
-import { Heart, MessageCircle, Send, Share2, User as UserIcon, Loader2, MoreHorizontal, Trash2, UserPlus, UserMinus } from 'lucide-react'
+import { Heart, MessageCircle, Send, Share2, User as UserIcon, Loader2, MoreHorizontal, Trash2, UserPlus, UserMinus, Bookmark, BookmarkCheck } from 'lucide-react'
 import OptimizedImage from '@/components/OptimizedImage'
 
 const commentSchema = z.object({
@@ -24,7 +24,7 @@ interface PostCardProps {
   lazy?: boolean // New prop for lazy loading
 }
 
-export default function PostCard({ post, currentUser, onPostDelete, lazy = true }: PostCardProps) {
+function PostCard({ post, currentUser, onPostDelete, lazy = true }: PostCardProps) {
   const [isLiked, setIsLiked] = useState(false)
   const [likesCount, setLikesCount] = useState(post.likes?.length || 0)
   const [comments, setComments] = useState<Comment[]>(post.comments || [])
@@ -39,7 +39,11 @@ export default function PostCard({ post, currentUser, onPostDelete, lazy = true 
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [isFollowing, setIsFollowing] = useState(false)
   const [followLoading, setFollowLoading] = useState(false)
+  const [isSaved, setIsSaved] = useState(false)
+  const [saveLoading, setSaveLoading] = useState(false)
   const router = useRouter()
+  const menuRef = useRef<HTMLDivElement>(null)
+  const subscriptionRef = useRef<any>(null)
 
   const {
     register,
@@ -49,6 +53,20 @@ export default function PostCard({ post, currentUser, onPostDelete, lazy = true 
   } = useForm<CommentFormData>({
     resolver: zodResolver(commentSchema),
   })
+
+  // Handle clicks outside the post menu
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowPostMenu(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
 
   useEffect(() => {
     if (currentUser && post.likes) {
@@ -64,22 +82,132 @@ export default function PostCard({ post, currentUser, onPostDelete, lazy = true 
     }
   }, [currentUser, post.likes, post.reposts, post.user_id])
 
-  // Close post menu when clicking outside
+  // Set up real-time subscriptions
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (showPostMenu) {
-        setShowPostMenu(false)
-      }
-    }
+    // Subscribe to likes changes
+    const likesSubscription = supabase
+      .channel(`likes-${post.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'likes',
+          filter: `post_id=eq.${post.id}`
+        },
+        (payload) => {
+          setLikesCount(prev => prev + 1)
+          if (payload.new.user_id === currentUser?.id) {
+            setIsLiked(true)
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'likes',
+          filter: `post_id=eq.${post.id}`
+        },
+        (payload) => {
+          setLikesCount(prev => prev - 1)
+          if (payload.old.user_id === currentUser?.id) {
+            setIsLiked(false)
+          }
+        }
+      )
+      .subscribe()
 
-    if (showPostMenu) {
-      document.addEventListener('click', handleClickOutside)
+    // Subscribe to comments changes
+    const commentsSubscription = supabase
+      .channel(`comments-${post.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'comments',
+          filter: `post_id=eq.${post.id}`
+        },
+        async (payload) => {
+          // Fetch the comment with profile data
+          const { data: commentWithProfile } = await supabase
+            .from('comments')
+            .select('*, profiles(username, avatar_url)')
+            .eq('id', payload.new.id)
+            .single()
+          
+          if (commentWithProfile) {
+            setComments(prev => [...prev, commentWithProfile])
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'comments',
+          filter: `post_id=eq.${post.id}`
+        },
+        (payload) => {
+          setComments(prev => prev.filter(comment => comment.id !== payload.old.id))
+        }
+      )
+      .subscribe()
+
+    // Subscribe to reposts changes
+    const repostsSubscription = supabase
+      .channel(`reposts-${post.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'reposts',
+          filter: `original_post_id=eq.${post.id}`
+        },
+        (payload) => {
+          setRepostsCount(prev => prev + 1)
+          if (payload.new.user_id === currentUser?.id) {
+            setIsReposted(true)
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'reposts',
+          filter: `original_post_id=eq.${post.id}`
+        },
+        (payload) => {
+          setRepostsCount(prev => prev - 1)
+          if (payload.old.user_id === currentUser?.id) {
+            setIsReposted(false)
+          }
+        }
+      )
+      .subscribe()
+
+    // Store subscriptions for cleanup
+    subscriptionRef.current = {
+      likes: likesSubscription,
+      comments: commentsSubscription,
+      reposts: repostsSubscription
     }
 
     return () => {
-      document.removeEventListener('click', handleClickOutside)
+      // Clean up subscriptions
+      if (subscriptionRef.current) {
+        subscriptionRef.current.likes.unsubscribe()
+        subscriptionRef.current.comments.unsubscribe()
+        subscriptionRef.current.reposts.unsubscribe()
+      }
     }
-  }, [showPostMenu])
+  }, [post.id, currentUser?.id])
 
   const handleLike = async () => {
     if (!currentUser) {
@@ -97,10 +225,7 @@ export default function PostCard({ post, currentUser, onPostDelete, lazy = true 
           .eq('post_id', post.id)
           .eq('user_id', currentUser.id)
 
-        if (!error) {
-          setIsLiked(false)
-          setLikesCount(prev => prev - 1)
-        }
+        if (error) throw error
       } else {
         // Like
         const { error } = await supabase
@@ -112,10 +237,7 @@ export default function PostCard({ post, currentUser, onPostDelete, lazy = true 
             },
           ])
 
-        if (!error) {
-          setIsLiked(true)
-          setLikesCount(prev => prev + 1)
-        }
+        if (error) throw error
       }
     } catch (error) {
       console.error('Error handling like:', error)
@@ -135,13 +257,9 @@ export default function PostCard({ post, currentUser, onPostDelete, lazy = true 
       if (isReposted) {
         // Remove repost
         await unrepostPost(post.id)
-        setIsReposted(false)
-        setRepostsCount(prev => prev - 1)
       } else {
         // Add repost
         await repostPost(post.id)
-        setIsReposted(true)
-        setRepostsCount(prev => prev + 1)
       }
     } catch (error) {
       console.error('Error handling repost:', error)
@@ -193,7 +311,7 @@ export default function PostCard({ post, currentUser, onPostDelete, lazy = true 
       }
 
       if (commentData) {
-        setComments(prev => [...prev, commentData as Comment])
+        // Comment will be added via real-time subscription
         reset()
         console.log('Comment added successfully!')
       }
@@ -232,7 +350,7 @@ export default function PostCard({ post, currentUser, onPostDelete, lazy = true 
 
     try {
       await deleteComment(commentId)
-      setComments(prev => prev.filter(comment => comment.id !== commentId))
+      // Comment will be removed via real-time subscription
     } catch (error) {
       console.error('Error deleting comment:', error)
       alert('Failed to delete comment. Please try again.')
@@ -259,6 +377,47 @@ export default function PostCard({ post, currentUser, onPostDelete, lazy = true 
     }
   }
 
+  const handleSavePost = async () => {
+    if (!currentUser) {
+      router.push('/auth/login')
+      return
+    }
+
+    setSaveLoading(true)
+    try {
+      if (isSaved) {
+        // Remove save
+        const { error } = await supabase
+          .from('saved_posts')
+          .delete()
+          .eq('post_id', post.id)
+          .eq('user_id', currentUser.id)
+
+        if (!error) {
+          setIsSaved(false)
+        }
+      } else {
+        // Save post
+        const { error } = await supabase
+          .from('saved_posts')
+          .insert([
+            {
+              post_id: post.id,
+              user_id: currentUser.id,
+            },
+          ])
+
+        if (!error) {
+          setIsSaved(true)
+        }
+      }
+    } catch (error) {
+      console.error('Error saving post:', error)
+    } finally {
+      setSaveLoading(false)
+    }
+  }
+
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString)
     const now = new Date()
@@ -272,11 +431,18 @@ export default function PostCard({ post, currentUser, onPostDelete, lazy = true 
     return `${diffInWeeks}w ago`
   }
 
+  const navigateToProfile = () => {
+    router.push(`/profile/${post.user_id}`)
+  }
+
   return (
     <div className="bg-card/80 backdrop-blur-xl border border-border rounded-2xl overflow-hidden mb-6 shadow-lg hover:shadow-xl transition-all duration-300 group">
       {/* Header */}
       <div className="flex items-center p-4 border-b border-border/50">
-        <div className="relative">
+        <div 
+          className="relative cursor-pointer"
+          onClick={navigateToProfile}
+        >
           <div className="w-10 h-10 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full flex items-center justify-center ring-2 ring-border">
             {post.profiles?.avatar_url ? (
               <img
@@ -290,8 +456,11 @@ export default function PostCard({ post, currentUser, onPostDelete, lazy = true 
           </div>
           <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-card"></div>
         </div>
-        <div className="ml-3 flex-1">
-          <p className="text-sm font-semibold text-foreground">
+        <div 
+          className="ml-3 flex-1 cursor-pointer"
+          onClick={navigateToProfile}
+        >
+          <p className="text-sm font-semibold text-foreground hover:text-primary transition-colors">
             {post.profiles?.username || 'Anonymous'}
           </p>
           <p className="text-xs text-muted-foreground">
@@ -323,7 +492,7 @@ export default function PostCard({ post, currentUser, onPostDelete, lazy = true 
         
         {/* Post Menu (Delete) - Only show for post owner */}
         {currentUser && currentUser.id === post.user_id && (
-          <div className="relative">
+          <div className="relative" ref={menuRef}>
             <button
               onClick={() => setShowPostMenu(!showPostMenu)}
               className="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-xl transition-all duration-200"
@@ -405,6 +574,23 @@ export default function PostCard({ post, currentUser, onPostDelete, lazy = true 
               <Share2 className={`w-6 h-6 transition-all duration-200 group-hover/btn:scale-110 ${isReposted ? 'fill-current animate-pulse' : ''}`} />
             )}
           </button>
+          <button
+            onClick={handleSavePost}
+            disabled={saveLoading}
+            className={`group/btn relative p-2 rounded-xl transition-all duration-200 disabled:opacity-50 hover:scale-110 ml-auto ${
+              isSaved 
+                ? 'text-blue-500 bg-blue-50 dark:bg-blue-500/10' 
+                : 'text-muted-foreground hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10'
+            }`}
+          >
+            {saveLoading ? (
+              <Loader2 className="w-6 h-6 animate-spin" />
+            ) : isSaved ? (
+              <BookmarkCheck className="w-6 h-6 fill-current" />
+            ) : (
+              <Bookmark className="w-6 h-6" />
+            )}
+          </button>
         </div>
 
         {/* Engagement counts */}
@@ -423,7 +609,12 @@ export default function PostCard({ post, currentUser, onPostDelete, lazy = true 
         {post.caption && (
           <div className="mb-3 p-3 bg-muted/50 rounded-xl">
             <span className="text-sm text-foreground">
-              <span className="font-semibold text-primary">{post.profiles?.username || 'Anonymous'}</span>{' '}
+              <span 
+                className="font-semibold text-primary cursor-pointer hover:underline"
+                onClick={navigateToProfile}
+              >
+                {post.profiles?.username || 'Anonymous'}
+              </span>{' '}
               <span className="text-foreground">{post.caption}</span>
             </span>
           </div>
@@ -445,7 +636,10 @@ export default function PostCard({ post, currentUser, onPostDelete, lazy = true 
               <div key={comment.id} className="bg-secondary/50 rounded-xl p-3 text-sm transition-colors hover:bg-secondary/70 group/comment">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <span className="font-semibold text-primary">
+                    <span 
+                      className="font-semibold text-primary cursor-pointer hover:underline"
+                      onClick={() => router.push(`/profile/${comment.user_id}`)}
+                    >
                       {comment.profiles?.username || 'Anonymous'}
                     </span>{' '}
                     <span className="text-foreground">{comment.text}</span>
@@ -515,3 +709,6 @@ export default function PostCard({ post, currentUser, onPostDelete, lazy = true 
     </div>
   )
 }
+
+// Memoize the component to prevent unnecessary re-renders
+export default memo(PostCard)

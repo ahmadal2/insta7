@@ -25,6 +25,11 @@
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  
+  /* Glassmorphism variables */
+  --glass-bg: 255 255 255 / 0.8;
+  --glass-border: 255 255 255 / 0.2;
+  --glass-backdrop: blur(12px);
 }
 
 .dark {
@@ -50,6 +55,11 @@
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.4);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.5);
   --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.6), 0 8px 10px -6px rgb(0 0 0 / 0.6);
+  
+  /* Glassmorphism variables for dark mode */
+  --glass-bg: 39 39 42 / 0.7;
+  --glass-border: 255 255 255 / 0.1;
+  --glass-backdrop: blur(12px);
 }
 
 /* Base styles with modern improvements */
@@ -66,6 +76,31 @@ body {
   -moz-osx-font-smoothing: grayscale;
   scroll-behavior: smooth;
   transition: background-color 0.3s ease, color 0.3s ease;
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgb(var(--primary) / 0.05) 0%, transparent 20%),
+    radial-gradient(circle at 90% 80%, rgb(var(--secondary) / 0.1) 0%, transparent 20%);
+}
+
+/* Glassmorphism utility classes */
+.glass {
+  background: rgb(var(--glass-bg));
+  border: 1px solid var(--glass-border);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+}
+
+.glass-light {
+  background: rgb(255 255 255 / 0.7);
+  border: 1px solid rgb(255 255 255 / 0.3);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.glass-dark {
+  background: rgb(30 30 35 / 0.7);
+  border: 1px solid rgb(255 255 255 / 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 /* Modern scrollbar */
@@ -128,6 +163,11 @@ img {
   50% { opacity: 0.7; }
 }
 
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
 .animate-fade-in {
   animation: fadeIn 0.3s ease-out;
 }
@@ -140,6 +180,56 @@ img {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
+/* Shimmer effect for loading states */
+.shimmer {
+  background: linear-gradient(to right, 
+    rgb(var(--muted) / 0.5) 0%, 
+    rgb(var(--muted) / 0.8) 50%, 
+    rgb(var(--muted) / 0.5) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+}
+
+/* Smooth transitions */
+.transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+.transition-colors {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+.transition-transform {
+  transition-property: transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Scale transforms */
+.scale-105 {
+  --tw-scale-x: 1.05;
+  --tw-scale-y: 1.05;
+}
+
+.scale-110 {
+  --tw-scale-x: 1.1;
+  --tw-scale-y: 1.1;
+}
+
+.hover\:scale-105:hover {
+  --tw-scale-x: 1.05;
+  --tw-scale-y: 1.05;
+}
+
+.hover\:scale-110:hover {
+  --tw-scale-x: 1.1;
+  --tw-scale-y: 1.1;
+}
+
 /* Reduced motion for accessibility */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -147,5 +237,21 @@ img {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+  body {
+    background-image: 
+      radial-gradient(circle at 5% 10%, rgb(var(--primary) / 0.03) 0%, transparent 15%),
+      radial-gradient(circle at 95% 90%, rgb(var(--secondary) / 0.05) 0%, transparent 15%);
+  }
+  
+  .glass {
+    background: rgb(var(--glass-bg));
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
 }

@@ -1,15 +1,15 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback, useRef, memo } from 'react'
 import { useParams } from 'next/navigation'
 import { User } from '@supabase/supabase-js'
 import { supabase, Post, Profile } from '@/lib/supabaseClient'
 import { followUser, unfollowUser, checkIfFollowing } from '@/lib/postActions'
 import PostCard from '@/components/PostCard'
-import { User as UserIcon, Loader2, Grid, UserPlus, UserMinus, Settings } from 'lucide-react'
+import { User as UserIcon, Loader2, Grid, UserPlus, UserMinus, Settings, LayoutGrid, List, Heart, MessageCircle } from 'lucide-react'
 import Link from 'next/link'
 
-export default function ProfilePage() {
+function ProfilePage() {
   const params = useParams()
   const userId = params.id as string
   
@@ -25,6 +25,8 @@ export default function ProfilePage() {
     followersCount: 0,
     followingCount: 0
   })
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const subscriptionRef = useRef<any>(null)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -135,6 +137,100 @@ export default function ProfilePage() {
     if (userId) fetchData()
   }, [userId])
 
+  // Set up real-time subscriptions
+  useEffect(() => {
+    // Subscribe to posts changes for this user
+    const postsSubscription = supabase
+      .channel(`posts-${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'posts',
+          filter: `user_id=eq.${userId}`
+        },
+        async (payload) => {
+          // Fetch the new post with all related data
+          const { data: newPost } = await supabase
+            .from('posts')
+            .select(`
+              *,
+              profiles:user_id(username, avatar_url),
+              likes(*),
+              comments(*),
+              reposts(*)
+            `)
+            .eq('id', payload.new.id)
+            .single()
+          
+          if (newPost) {
+            setPosts(prev => [newPost, ...prev])
+            setStats(prev => ({ ...prev, postsCount: prev.postsCount + 1 }))
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'posts',
+          filter: `user_id=eq.${userId}`
+        },
+        (payload) => {
+          setPosts(prev => prev.filter(post => post.id !== payload.old.id))
+          setStats(prev => ({ ...prev, postsCount: prev.postsCount - 1 }))
+        }
+      )
+      .subscribe()
+
+    // Subscribe to follows changes
+    const followsSubscription = supabase
+      .channel(`follows-${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'follows',
+          filter: `following_id=eq.${userId}`
+        },
+        () => {
+          // Update followers count
+          setStats(prev => ({ ...prev, followersCount: prev.followersCount + 1 }))
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'follows',
+          filter: `following_id=eq.${userId}`
+        },
+        () => {
+          // Update followers count
+          setStats(prev => ({ ...prev, followersCount: prev.followersCount - 1 }))
+        }
+      )
+      .subscribe()
+
+    // Store subscriptions for cleanup
+    subscriptionRef.current = {
+      posts: postsSubscription,
+      follows: followsSubscription
+    }
+
+    return () => {
+      // Clean up subscriptions
+      if (subscriptionRef.current) {
+        subscriptionRef.current.posts.unsubscribe()
+        subscriptionRef.current.follows.unsubscribe()
+      }
+    }
+  }, [userId])
+
   const handleFollowToggle = async () => {
     if (!currentUser) {
       return
@@ -179,13 +275,13 @@ export default function ProfilePage() {
     }
   }
 
-  const handlePostDelete = (postId: string) => {
+  const handlePostDelete = useCallback((postId: string) => {
     setPosts(prevPosts => prevPosts.filter(post => post.id !== postId))
     setStats(prevStats => ({
       ...prevStats,
       postsCount: prevStats.postsCount - 1
     }))
-  }
+  }, [])
 
   if (loading) {
     return (
@@ -216,11 +312,14 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto py-4 sm:py-8 px-3 sm:px-4">
+      <div className="max-w-6xl mx-auto py-4 sm:py-8 px-3 sm:px-4">
         {/* Profile Header */}
         <div className="bg-card/80 backdrop-blur-xl border border-border rounded-2xl p-6 sm:p-8 mb-6 sm:mb-8 shadow-lg hover:shadow-xl transition-all duration-300">
           <div className="flex flex-col sm:flex-row items-start space-y-6 sm:space-y-0 sm:space-x-8">
-            <div className="relative mx-auto sm:mx-0">
+            <div 
+              className="relative mx-auto sm:mx-0 cursor-pointer"
+              onClick={() => window.location.reload()}
+            >
               <div className="w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full flex items-center justify-center ring-4 ring-border/50 overflow-hidden">
                 {profile.avatar_url ? (
                   <img src={profile.avatar_url} alt="Profile" className="w-full h-full object-cover" />
@@ -308,12 +407,41 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Posts */}
+        {/* Posts Section */}
         <div className="bg-card/80 backdrop-blur-xl border border-border rounded-2xl shadow-lg p-4 sm:p-6">
-          <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-6 flex items-center space-x-2">
-            <Grid className="h-5 w-5 text-primary" />
-            <span>Posts</span>
-          </h2>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-lg sm:text-xl font-semibold text-foreground flex items-center space-x-2">
+              <Grid className="h-5 w-5 text-primary" />
+              <span>Posts</span>
+            </h2>
+            
+            {/* View Mode Toggle */}
+            <div className="flex items-center space-x-2 bg-muted/50 rounded-xl p-1">
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`p-2 rounded-lg transition-all duration-200 ${
+                  viewMode === 'grid' 
+                    ? 'bg-primary text-primary-foreground shadow' 
+                    : 'text-muted-foreground hover:bg-secondary'
+                }`}
+                title="Grid view"
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`p-2 rounded-lg transition-all duration-200 ${
+                  viewMode === 'list' 
+                    ? 'bg-primary text-primary-foreground shadow' 
+                    : 'text-muted-foreground hover:bg-secondary'
+                }`}
+                title="List view"
+              >
+                <List className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+          
           {(!posts || posts.length === 0) ? (
             <div className="text-center py-12 sm:py-16">
               <div className="relative mb-6">
@@ -323,7 +451,37 @@ export default function ProfilePage() {
               <h3 className="text-lg font-semibold text-foreground mb-2">No posts yet</h3>
               <p className="text-muted-foreground text-sm sm:text-base">When {profile.username || 'this user'} shares photos, they&apos;ll appear here.</p>
             </div>
+          ) : viewMode === 'grid' ? (
+            // Grid View
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {posts.map((post) => (
+                <div 
+                  key={post.id} 
+                  className="aspect-square rounded-xl overflow-hidden cursor-pointer group relative"
+                  onClick={() => window.location.href = `/post/${post.id}`}
+                >
+                  <img 
+                    src={post.image_url} 
+                    alt={post.caption || 'Post image'} 
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                    <div className="flex space-x-4 text-white">
+                      <div className="flex items-center space-x-1">
+                        <Heart className="h-6 w-6" />
+                        <span className="font-semibold">{post.likes?.length || 0}</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <MessageCircle className="h-6 w-6" />
+                        <span className="font-semibold">{post.comments?.length || 0}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : (
+            // List View
             <div className="space-y-6">
               {posts.map((post) => (
                 <PostCard key={post.id} post={post} currentUser={currentUser} onPostDelete={handlePostDelete} />
@@ -335,3 +493,6 @@ export default function ProfilePage() {
     </div>
   )
 }
+
+// Memoize the component to prevent unnecessary re-renders
+export default memo(ProfilePage)

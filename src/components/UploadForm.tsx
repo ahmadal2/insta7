@@ -253,7 +253,7 @@ export default function UploadForm({ onSuccess }: UploadFormProps) {
         {/* File Upload Area */}
         <div className="space-y-4">
           {!preview ? (
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors">
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors glass">
               <input
                 type="file"
                 accept="image/*"
@@ -267,21 +267,21 @@ export default function UploadForm({ onSuccess }: UploadFormProps) {
               >
                 <Upload className="h-12 w-12 text-gray-400" />
                 <div>
-                  <p className="text-lg font-medium text-gray-900">
+                  <p className="text-lg font-medium text-gray-900 dark:text-gray-100">
                     Click to upload an image
                   </p>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
                     PNG, JPG, GIF up to 5MB
                   </p>
                 </div>
               </label>
             </div>
           ) : (
-            <div className="relative">
+            <div className="relative glass rounded-lg overflow-hidden">
               <img
                 src={preview}
                 alt="Preview"
-                className="w-full h-64 object-cover rounded-lg"
+                className="w-full h-64 object-cover"
               />
               <button
                 type="button"
@@ -295,14 +295,14 @@ export default function UploadForm({ onSuccess }: UploadFormProps) {
         </div>
 
         {/* Caption Input */}
-        <div>
-          <label htmlFor="caption" className="block text-sm font-medium text-gray-700 mb-2">
+        <div className="glass rounded-lg p-4">
+          <label htmlFor="caption" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Caption (optional)
           </label>
           <textarea
             {...register('caption')}
             rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white/50 dark:bg-gray-800/50"
             placeholder="Write a caption for your post..."
           />
           {errors.caption && (
@@ -312,7 +312,7 @@ export default function UploadForm({ onSuccess }: UploadFormProps) {
 
         {/* Error Message */}
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md">
+          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md glass">
             <div className="flex items-start">
               <div className="flex-shrink-0">
                 <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
@@ -361,7 +361,7 @@ export default function UploadForm({ onSuccess }: UploadFormProps) {
         <button
           type="submit"
           disabled={!selectedFile || uploading}
-          className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors glass"
         >
           {uploading ? (
             <>

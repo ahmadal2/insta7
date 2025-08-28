@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback, useMemo } from 'react'
+import { useEffect, useState, useCallback, useMemo, useRef, memo } from 'react'
 import { User } from '@supabase/supabase-js'
 import { supabase, Post } from '@/lib/supabaseClient'
 import { getPublicFeed, getFollowingFeed } from '@/lib/postActions'
@@ -18,7 +18,7 @@ const PAGINATION_SIZE = 5     // Smaller pagination for mobile
 const MAX_RETRIES = 2
 const SCROLL_THRESHOLD = 500  // Reduced scroll threshold for mobile
 
-export default function Home() {
+function Home() {
   const [posts, setPosts] = useState<Post[]>([])
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
@@ -28,6 +28,7 @@ export default function Home() {
   const [hasMore, setHasMore] = useState(true)
   const [page, setPage] = useState(0)
   const [isMobile, setIsMobile] = useState(false)
+  const subscriptionRef = useRef<any>(null)
 
   // Detect mobile device
   useEffect(() => {
@@ -175,6 +176,82 @@ export default function Home() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [loadMorePosts, isMobile])
 
+  // Set up real-time subscriptions
+  useEffect(() => {
+    // Subscribe to new posts
+    const postsSubscription = supabase
+      .channel('public-posts')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'posts'
+        },
+        async (payload) => {
+          // Only add to feed if it's a public post or from a followed user
+          if (feedType === 'public') {
+            // Fetch the new post with all related data
+            const { data: newPost } = await supabase
+              .from('posts')
+              .select(`
+                *,
+                profiles:user_id(username, avatar_url),
+                likes(*),
+                comments(*),
+                reposts(*)
+              `)
+              .eq('id', payload.new.id)
+              .single()
+            
+            if (newPost) {
+              // Add to the beginning of the feed
+              setPosts(prev => [newPost, ...prev])
+            }
+          } else if (feedType === 'following' && user) {
+            // Check if the post is from a followed user
+            const { data: isFollowing } = await supabase
+              .from('follows')
+              .select('*')
+              .eq('follower_id', user.id)
+              .eq('following_id', payload.new.user_id)
+              .single()
+            
+            if (isFollowing) {
+              // Fetch the new post with all related data
+              const { data: newPost } = await supabase
+                .from('posts')
+                .select(`
+                  *,
+                  profiles:user_id(username, avatar_url),
+                  likes(*),
+                  comments(*),
+                  reposts(*)
+                `)
+                .eq('id', payload.new.id)
+                .single()
+              
+              if (newPost) {
+                // Add to the beginning of the feed
+                setPosts(prev => [newPost, ...prev])
+              }
+            }
+          }
+        }
+      )
+      .subscribe()
+
+    // Store subscription for cleanup
+    subscriptionRef.current = postsSubscription
+
+    return () => {
+      // Clean up subscription
+      if (subscriptionRef.current) {
+        subscriptionRef.current.unsubscribe()
+      }
+    }
+  }, [feedType, user])
+
   const handleFeedSwitch = useCallback((type: 'public' | 'following') => {
     if (type !== feedType) {
       setFeedType(type)
@@ -207,7 +284,7 @@ export default function Home() {
       <div className="max-w-2xl mx-auto py-4 sm:py-8 px-3 sm:px-4">
         {/* Welcome Section */}
         {!user && (
-          <div className="bg-card/80 backdrop-blur-xl border border-border rounded-2xl p-6 sm:p-8 mb-6 sm:mb-8 text-center shadow-lg hover:shadow-xl transition-all duration-300">
+          <div className="bg-card/80 backdrop-blur-xl border border-border rounded-2xl p-6 sm:p-8 mb-6 sm:mb-8 text-center shadow-lg hover:shadow-xl transition-all duration-300 glass">
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full blur-xl opacity-50"></div>
               <Camera className="relative h-16 w-16 text-primary mx-auto mb-4 drop-shadow-sm" />
@@ -237,7 +314,7 @@ export default function Home() {
 
         {/* Feed Type Switcher for logged in users */}
         {user && (
-          <div className="bg-card/80 backdrop-blur-xl border border-border rounded-2xl p-2 mb-6 shadow-lg">
+          <div className="bg-card/80 backdrop-blur-xl border border-border rounded-2xl p-2 mb-6 shadow-lg glass">
             <div className="flex space-x-1">
               <button
                 onClick={() => handleFeedSwitch('public')}
@@ -269,7 +346,7 @@ export default function Home() {
 
         {/* Create Post Button for logged in users */}
         {user && (
-          <div className="bg-card/80 backdrop-blur-xl border border-border rounded-2xl p-4 mb-6 shadow-lg hover:shadow-xl transition-all duration-300">
+          <div className="bg-card/80 backdrop-blur-xl border border-border rounded-2xl p-4 mb-6 shadow-lg hover:shadow-xl transition-all duration-300 glass">
             <Link
               href="/upload"
               className="flex items-center justify-center space-x-2 w-full py-4 bg-gradient-to-r from-primary via-primary to-primary/90 text-primary-foreground rounded-xl hover:shadow-lg hover:scale-[1.02] transition-all duration-200 font-semibold group"
@@ -289,7 +366,7 @@ export default function Home() {
             ))}
           </div>
         ) : posts.length === 0 ? (
-          <div className="bg-card/80 backdrop-blur-xl border border-border rounded-2xl p-6 sm:p-8 text-center shadow-lg">
+          <div className="bg-card/80 backdrop-blur-xl border border-border rounded-2xl p-6 sm:p-8 text-center shadow-lg glass">
             <div className="relative mb-6">
               <div className="absolute inset-0 bg-gradient-to-br from-muted/30 to-secondary/30 rounded-full blur-xl opacity-50"></div>
               <Camera className="relative h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -327,7 +404,7 @@ export default function Home() {
                 ) : (
                   <button
                     onClick={loadMorePosts}
-                    className="px-6 py-3 bg-secondary/50 hover:bg-secondary text-foreground rounded-xl transition-colors font-medium"
+                    className="px-6 py-3 bg-secondary/50 hover:bg-secondary text-foreground rounded-xl transition-colors font-medium glass"
                   >
                     Load More Posts
                   </button>
@@ -346,3 +423,6 @@ export default function Home() {
     </div>
   )
 }
+
+// Memoize the component to prevent unnecessary re-renders
+export default memo(Home)
