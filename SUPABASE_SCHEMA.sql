@@ -20,6 +20,9 @@ CREATE TABLE IF NOT EXISTS posts (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
+-- Add a column to distinguish between image and video posts
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS media_type TEXT DEFAULT 'image';
+
 -- Create likes table
 CREATE TABLE IF NOT EXISTS likes (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
@@ -56,6 +59,16 @@ CREATE TABLE IF NOT EXISTS reposts (
   UNIQUE(user_id, original_post_id)
 );
 
+-- Create messages table for chat functionality
+CREATE TABLE IF NOT EXISTS messages (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  sender_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  recipient_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  content TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+  read BOOLEAN DEFAULT false
+);
+
 -- Set up Row Level Security (RLS)
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE posts ENABLE ROW LEVEL SECURITY;
@@ -63,6 +76,7 @@ ALTER TABLE likes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE follows ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reposts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies
 CREATE POLICY "Public profiles are viewable by everyone" ON profiles FOR SELECT USING (true);
@@ -86,3 +100,8 @@ CREATE POLICY "Users can manage their own follows" ON follows FOR ALL USING (aut
 
 CREATE POLICY "Reposts are viewable by everyone" ON reposts FOR SELECT USING (true);
 CREATE POLICY "Users can manage their own reposts" ON reposts FOR ALL USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can view their own messages" ON messages FOR SELECT USING (auth.uid() = sender_id OR auth.uid() = recipient_id);
+CREATE POLICY "Users can insert their own messages" ON messages FOR INSERT WITH CHECK (auth.uid() = sender_id);
+CREATE POLICY "Users can update read status of messages sent to them" ON messages FOR UPDATE USING (auth.uid() = recipient_id) WITH CHECK (auth.uid() = recipient_id);
+CREATE POLICY "Users can delete their own messages" ON messages FOR DELETE USING (auth.uid() = sender_id OR auth.uid() = recipient_id);

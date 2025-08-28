@@ -1,5 +1,3 @@
-@import "tailwindcss";
-
 /* Modern CSS Variables for 2025 Design */
 :root {
   /* Light theme */
@@ -168,6 +166,19 @@ img {
   100% { background-position: 200% 0; }
 }
 
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes ping {
+  75%, 100% { transform: scale(1.5); opacity: 0; }
+}
+
 .animate-fade-in {
   animation: fadeIn 0.3s ease-out;
 }
@@ -178,6 +189,18 @@ img {
 
 .animate-pulse {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-bounce {
+  animation: bounce 1s infinite;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+.animate-ping {
+  animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
 /* Shimmer effect for loading states */
@@ -228,6 +251,16 @@ img {
 .hover\:scale-110:hover {
   --tw-scale-x: 1.1;
   --tw-scale-y: 1.1;
+}
+
+/* Additional hover effects */
+.hover\:lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 /* Reduced motion for accessibility */

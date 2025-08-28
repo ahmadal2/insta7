@@ -45,6 +45,7 @@ export interface Post {
   image_url: string
   caption: string | null
   created_at: string
+  media_type: string | null
   profiles: Profile
   likes: Like[]
   comments: Comment[]
@@ -83,6 +84,17 @@ export interface Repost {
   created_at: string
   profiles?: Profile
   posts?: Post
+}
+
+export interface Message {
+  id: string
+  sender_id: string
+  recipient_id: string
+  content: string
+  created_at: string
+  read: boolean
+  sender?: Profile
+  recipient?: Profile
 }
 
 export interface UserStats {

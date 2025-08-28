@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { supabase } from '@/lib/supabaseClient'
-import { Upload, Image as ImageIcon, X } from 'lucide-react'
+import { Upload, Image as ImageIcon, X, Play } from 'lucide-react'
 import { v4 as uuidv4 } from 'uuid'
 
 const uploadSchema = z.object({
@@ -22,6 +22,7 @@ interface UploadFormProps {
 export default function UploadForm({ onSuccess }: UploadFormProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
+  const [isVideo, setIsVideo] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
@@ -40,18 +41,23 @@ export default function UploadForm({ onSuccess }: UploadFormProps) {
     if (!file) return
 
     // Validate file type
-    if (!file.type.startsWith('image/')) {
-      setError('Please select an image file')
+    const isImage = file.type.startsWith('image/')
+    const isVideo = file.type.startsWith('video/')
+    
+    if (!isImage && !isVideo) {
+      setError('Please select an image or video file')
       return
     }
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      setError('File size must be less than 5MB')
+    // Validate file size (max 10MB for videos, 5MB for images)
+    const maxSize = isVideo ? 10 * 1024 * 1024 : 5 * 1024 * 1024
+    if (file.size > maxSize) {
+      setError(isVideo ? 'Video size must be less than 10MB' : 'Image size must be less than 5MB')
       return
     }
 
     setSelectedFile(file)
+    setIsVideo(isVideo)
     setError(null)
 
     // Create preview
@@ -65,12 +71,13 @@ export default function UploadForm({ onSuccess }: UploadFormProps) {
   const removeFile = () => {
     setSelectedFile(null)
     setPreview(null)
+    setIsVideo(false)
     setError(null)
   }
 
   const onSubmit = async (data: UploadFormData) => {
     if (!selectedFile) {
-      setError('Please select an image')
+      setError('Please select an image or video')
       return
     }
 
@@ -83,7 +90,7 @@ export default function UploadForm({ onSuccess }: UploadFormProps) {
       // Check if user is authenticated using getUser() method
       const { data: { user }, error: userError } = await supabase.auth.getUser()
       if (userError || !user) {
-        setError('You must be logged in to upload images. Please log in first.')
+        setError('You must be logged in to upload media. Please log in first.')
         return
       }
       
@@ -124,7 +131,7 @@ export default function UploadForm({ onSuccess }: UploadFormProps) {
       const fileName = `${uuidv4()}.${fileExt}`
       console.log('Generated filename:', fileName)
 
-      // Upload image to Supabase Storage
+      // Upload media to Supabase Storage
       console.log('Attempting to upload to "images" bucket...')
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('images')
@@ -173,7 +180,7 @@ export default function UploadForm({ onSuccess }: UploadFormProps) {
         .getPublicUrl(fileName)
 
       if (!urlData?.publicUrl) {
-        throw new Error('Failed to get image URL')
+        throw new Error('Failed to get media URL')
       }
 
       // Create post record - Using DEFAULT auth.uid() approach (Solution 2)
@@ -186,6 +193,7 @@ export default function UploadForm({ onSuccess }: UploadFormProps) {
             // user_id is automatically set by database DEFAULT auth.uid()
             image_url: urlData.publicUrl,
             caption: data.caption || null,
+            media_type: isVideo ? 'video' : 'image'
           },
         ])
         .select()
@@ -226,7 +234,7 @@ export default function UploadForm({ onSuccess }: UploadFormProps) {
       console.error('================================')
       
       // Handle empty error objects and network issues
-      let errorMessage = 'Failed to upload image'
+      let errorMessage = 'Failed to upload media'
       
       if (err instanceof Error) {
         errorMessage = err.message
@@ -256,7 +264,7 @@ export default function UploadForm({ onSuccess }: UploadFormProps) {
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors glass">
               <input
                 type="file"
-                accept="image/*"
+                accept="image/*,video/*"
                 onChange={handleFileSelect}
                 className="hidden"
                 id="file-upload"
@@ -268,21 +276,36 @@ export default function UploadForm({ onSuccess }: UploadFormProps) {
                 <Upload className="h-12 w-12 text-gray-400" />
                 <div>
                   <p className="text-lg font-medium text-gray-900 dark:text-gray-100">
-                    Click to upload an image
+                    Click to upload an image or video
                   </p>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    PNG, JPG, GIF up to 5MB
+                    PNG, JPG, GIF up to 5MB or MP4, MOV up to 10MB
                   </p>
                 </div>
               </label>
             </div>
           ) : (
             <div className="relative glass rounded-lg overflow-hidden">
-              <img
-                src={preview}
-                alt="Preview"
-                className="w-full h-64 object-cover"
-              />
+              {isVideo ? (
+                <div className="relative">
+                  <video
+                    src={preview}
+                    controls
+                    className="w-full h-64 object-cover"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="bg-black bg-opacity-50 rounded-full p-4">
+                      <Play className="h-8 w-8 text-white" />
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <img
+                  src={preview}
+                  alt="Preview"
+                  className="w-full h-64 object-cover"
+                />
+              )}
               <button
                 type="button"
                 onClick={removeFile}
@@ -338,7 +361,7 @@ export default function UploadForm({ onSuccess }: UploadFormProps) {
                   {error.includes('must be logged in') && (
                     <div className="mt-2 p-3 bg-red-100 rounded border">
                       <p className="font-medium">Authentication Required:</p>
-                      <p className="mt-1 text-xs">Please log in to your account before uploading images.</p>
+                      <p className="mt-1 text-xs">Please log in to your account before uploading media.</p>
                     </div>
                   )}
                   {error.includes('Permission denied') && (

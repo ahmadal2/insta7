@@ -58,6 +58,9 @@ function PostCard({ post, currentUser, onPostDelete, lazy = true }: PostCardProp
     resolver: zodResolver(commentSchema),
   })
 
+  // Check if the post is a video based on media_type or file extension
+  const isVideoPost = post.media_type === 'video' || post.image_url?.match(/\.(mp4|mov|avi|wmv|flv|webm)$/i);
+
   // Handle clicks outside the post menu
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -330,8 +333,12 @@ function PostCard({ post, currentUser, onPostDelete, lazy = true }: PostCardProp
   const handleDeletePost = async () => {
     if (!currentUser || currentUser.id !== post.user_id) return
     
+    // Show confirmation dialog
     const confirmDelete = window.confirm('Are you sure you want to delete this post? This action cannot be undone.')
-    if (!confirmDelete) return
+    if (!confirmDelete) {
+      setShowPostMenu(false)
+      return
+    }
 
     setDeleteLoading(true)
     try {
@@ -477,10 +484,10 @@ function PostCard({ post, currentUser, onPostDelete, lazy = true }: PostCardProp
           <button
             onClick={handleFollowToggle}
             disabled={followLoading}
-            className={`flex items-center space-x-1 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 disabled:opacity-50 ${
+            className={`flex items-center space-x-1 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-300 disabled:opacity-50 transform hover:scale-105 ${
               isFollowing
                 ? 'bg-secondary text-foreground hover:bg-destructive/10 hover:text-destructive'
-                : 'bg-primary text-primary-foreground hover:bg-primary/90'
+                : 'bg-gradient-to-r from-primary to-primary/90 text-primary-foreground hover:shadow-lg'
             }`}
           >
             {followLoading ? (
@@ -499,13 +506,13 @@ function PostCard({ post, currentUser, onPostDelete, lazy = true }: PostCardProp
           <div className="relative" ref={menuRef}>
             <button
               onClick={() => setShowPostMenu(!showPostMenu)}
-              className="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-xl transition-all duration-200"
+              className="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-xl transition-all duration-200 transform hover:scale-110"
             >
               <MoreHorizontal className="w-5 h-5" />
             </button>
             
             {showPostMenu && (
-              <div className="absolute right-0 top-12 bg-card/95 backdrop-blur-xl border border-border rounded-xl shadow-xl z-10 min-w-[120px] overflow-hidden">
+              <div className="absolute right-0 top-12 bg-card/95 backdrop-blur-xl border border-border rounded-xl shadow-xl z-10 min-w-[120px] overflow-hidden animate-fadeIn">
                 <button
                   onClick={handleDeletePost}
                   disabled={deleteLoading}
@@ -524,17 +531,30 @@ function PostCard({ post, currentUser, onPostDelete, lazy = true }: PostCardProp
         )}
       </div>
 
-      {/* Image */}
+      {/* Media Content */}
       <div className="relative w-full overflow-hidden">
-        <OptimizedImage
-          src={post.image_url}
-          alt={post.caption || 'Post image'}
-          lazy={lazy}
-          className="w-full h-auto object-cover max-h-96 group-hover:scale-[1.02] transition-transform duration-500"
-          aspectRatio="1 / 1"
-          objectFit="cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        {isVideoPost ? (
+          <div className="relative">
+            <video 
+              src={post.image_url} 
+              controls 
+              className="w-full h-auto object-cover max-h-96 transition-transform duration-500"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          </div>
+        ) : (
+          <>
+            <OptimizedImage
+              src={post.image_url}
+              alt={post.caption || 'Post image'}
+              lazy={lazy}
+              className="w-full h-auto object-cover max-h-96 group-hover:scale-[1.02] transition-transform duration-500"
+              aspectRatio="1 / 1"
+              objectFit="cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          </>
+        )}
       </div>
 
       {/* Actions */}
@@ -543,7 +563,7 @@ function PostCard({ post, currentUser, onPostDelete, lazy = true }: PostCardProp
           <button
             onClick={handleLike}
             disabled={likeLoading}
-            className={`group/btn relative p-2 rounded-xl transition-all duration-200 disabled:opacity-50 hover:scale-110 ${
+            className={`group/btn relative p-2 rounded-xl transition-all duration-300 disabled:opacity-50 hover:scale-110 transform ${
               isLiked 
                 ? 'text-red-500 bg-red-50 dark:bg-red-500/10' 
                 : 'text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10'
@@ -552,19 +572,19 @@ function PostCard({ post, currentUser, onPostDelete, lazy = true }: PostCardProp
             {likeLoading ? (
               <Loader2 className="w-6 h-6 animate-spin" />
             ) : (
-              <Heart className={`w-6 h-6 transition-all duration-200 group-hover/btn:scale-110 ${isLiked ? 'fill-current animate-pulse' : ''}`} />
+              <Heart className={`w-6 h-6 transition-all duration-300 group-hover/btn:scale-110 ${isLiked ? 'fill-current animate-pulse' : ''}`} />
             )}
           </button>
           <button
             onClick={() => setShowComments(!showComments)}
-            className="group/btn p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-xl transition-all duration-200 hover:scale-110"
+            className="group/btn p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-xl transition-all duration-300 hover:scale-110 transform"
           >
-            <MessageCircle className="w-6 h-6 transition-all duration-200 group-hover/btn:scale-110" />
+            <MessageCircle className="w-6 h-6 transition-all duration-300 group-hover/btn:scale-110" />
           </button>
           <button
             onClick={handleRepost}
             disabled={repostLoading}
-            className={`group/btn relative p-2 rounded-xl transition-all duration-200 disabled:opacity-50 hover:scale-110 ${
+            className={`group/btn relative p-2 rounded-xl transition-all duration-300 disabled:opacity-50 hover:scale-110 transform ${
               isReposted 
                 ? 'text-green-500 bg-green-50 dark:bg-green-500/10' 
                 : 'text-muted-foreground hover:text-green-500 hover:bg-green-50 dark:hover:bg-green-500/10'
@@ -573,13 +593,13 @@ function PostCard({ post, currentUser, onPostDelete, lazy = true }: PostCardProp
             {repostLoading ? (
               <Loader2 className="w-6 h-6 animate-spin" />
             ) : (
-              <Share2 className={`w-6 h-6 transition-all duration-200 group-hover/btn:scale-110 ${isReposted ? 'fill-current animate-pulse' : ''}`} />
+              <Share2 className={`w-6 h-6 transition-all duration-300 group-hover/btn:scale-110 ${isReposted ? 'fill-current animate-pulse' : ''}`} />
             )}
           </button>
           <button
             onClick={handleSavePost}
             disabled={saveLoading}
-            className={`group/btn relative p-2 rounded-xl transition-all duration-200 disabled:opacity-50 hover:scale-110 ml-auto ${
+            className={`group/btn relative p-2 rounded-xl transition-all duration-300 disabled:opacity-50 hover:scale-110 transform ml-auto ${
               isSaved 
                 ? 'text-blue-500 bg-blue-50 dark:bg-blue-500/10' 
                 : 'text-muted-foreground hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10'

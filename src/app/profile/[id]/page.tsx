@@ -6,7 +6,7 @@ import { User } from '@supabase/supabase-js'
 import { supabase, Post, Profile } from '@/lib/supabaseClient'
 import { followUser, unfollowUser, checkIfFollowing } from '@/lib/postActions'
 import PostCard from '@/components/PostCard'
-import { User as UserIcon, Loader2, Grid, UserPlus, UserMinus, Settings, LayoutGrid, List, Heart, MessageCircle } from 'lucide-react'
+import { User as UserIcon, Loader2, Grid, UserPlus, UserMinus, Settings, LayoutGrid, List, Heart, MessageCircle, Play } from 'lucide-react'
 import Link from 'next/link'
 
 function ProfilePage() {
@@ -286,6 +286,11 @@ function ProfilePage() {
     }))
   }, [])
 
+  // Check if a post is a video based on media_type or file extension
+  const isVideoPost = (post: Post) => {
+    return post.media_type === 'video' || post.image_url?.match(/\.(mp4|mov|avi|wmv|flv|webm)$/i);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -317,10 +322,10 @@ function ProfilePage() {
     <div className="min-h-screen bg-background">
       <div className="max-w-6xl mx-auto py-4 sm:py-8 px-3 sm:px-4">
         {/* Profile Header */}
-        <div className="bg-card/80 backdrop-blur-xl border border-border rounded-2xl p-6 sm:p-8 mb-6 sm:mb-8 shadow-lg hover:shadow-xl transition-all duration-300">
+        <div className="bg-card/80 backdrop-blur-xl border border-border rounded-2xl p-6 sm:p-8 mb-6 sm:mb-8 shadow-lg hover:shadow-xl transition-all duration-300 lift">
           <div className="flex flex-col sm:flex-row items-start space-y-6 sm:space-y-0 sm:space-x-8">
             <div 
-              className="relative mx-auto sm:mx-0 cursor-pointer"
+              className="relative mx-auto sm:mx-0 cursor-pointer transform transition-transform duration-300 hover:scale-105"
               onClick={() => window.location.reload()}
             >
               <div className="w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full flex items-center justify-center ring-4 ring-border/50 overflow-hidden">
@@ -330,11 +335,11 @@ function ProfilePage() {
                   <UserIcon className="w-12 h-12 sm:w-16 sm:h-16 text-muted-foreground" />
                 )}
               </div>
-              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-4 border-card"></div>
+              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-4 border-card animate-pulse"></div>
             </div>
             <div className="flex-1 text-center sm:text-left">
               <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 mb-6">
-                <h1 className="text-2xl sm:text-3xl font-bold text-foreground bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+                <h1 className="text-2xl sm:text-3xl font-bold text-foreground bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent animate-fade-in">
                   {profile.username || 'Anonymous'}
                 </h1>
                 
@@ -342,17 +347,17 @@ function ProfilePage() {
                 {currentUser && currentUser.id === userId ? (
                   <Link
                     href={`/profile/${userId}/edit`}
-                    className="inline-flex items-center space-x-2 px-4 py-2 border border-border bg-secondary/50 text-foreground rounded-xl hover:bg-secondary transition-all duration-200 font-medium"
+                    className="inline-flex items-center space-x-2 px-4 py-2 border border-border bg-secondary/50 text-foreground rounded-xl hover:bg-secondary transition-all duration-200 font-medium lift"
                   >
                     <Settings className="h-4 w-4" />
                     <span>Edit Profile</span>
                   </Link>
                 ) : currentUser ? (
-                  <div className="space-y-2">
+                  <div className="flex flex-wrap gap-2 sm:gap-3">
                     <button
                       onClick={handleFollowToggle}
                       disabled={followLoading}
-                      className={`flex items-center space-x-2 px-6 py-3 rounded-xl transition-all duration-200 disabled:opacity-50 font-semibold ${
+                      className={`flex items-center space-x-2 px-4 sm:px-6 py-2.5 rounded-xl transition-all duration-300 disabled:opacity-50 font-semibold lift ${
                         isFollowing
                           ? 'bg-secondary text-foreground hover:bg-destructive/10 hover:text-destructive border border-border'
                           : 'bg-gradient-to-r from-primary to-primary/90 text-primary-foreground hover:shadow-lg hover:scale-[1.02]'
@@ -368,9 +373,18 @@ function ProfilePage() {
                       <span>{followLoading ? 'Processing...' : (isFollowing ? 'Unfollow' : 'Follow')}</span>
                     </button>
                     
+                    {/* Chat button */}
+                    <Link
+                      href={`/messages?user=${userId}`}
+                      className="flex items-center space-x-2 px-4 sm:px-6 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-primary-foreground rounded-xl hover:shadow-lg hover:scale-[1.02] transition-all duration-300 font-semibold lift"
+                    >
+                      <MessageCircle className="h-4 w-4" />
+                      <span>Message</span>
+                    </Link>
+                    
                     {/* Follow Error Display */}
                     {followError && (
-                      <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-xl text-xs text-destructive backdrop-blur-sm">
+                      <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-xl text-xs text-destructive backdrop-blur-sm animate-fade-in">
                         <p className="font-medium">Follow Error:</p>
                         <p>{followError}</p>
                         {followError.includes('database setup') && (
@@ -386,15 +400,15 @@ function ProfilePage() {
               
               {/* User Statistics */}
               <div className="grid grid-cols-3 gap-4 sm:gap-8 mb-6">
-                <div className="text-center p-3 bg-muted/30 rounded-xl">
+                <div className="text-center p-3 bg-muted/30 rounded-xl hover:bg-muted/50 transition-colors duration-200 lift">
                   <div className="text-xl sm:text-2xl font-bold text-foreground">{stats.postsCount}</div>
                   <div className="text-xs sm:text-sm text-muted-foreground font-medium">Posts</div>
                 </div>
-                <div className="text-center p-3 bg-muted/30 rounded-xl">
+                <div className="text-center p-3 bg-muted/30 rounded-xl hover:bg-muted/50 transition-colors duration-200 lift">
                   <div className="text-xl sm:text-2xl font-bold text-foreground">{stats.followersCount}</div>
                   <div className="text-xs sm:text-sm text-muted-foreground font-medium">Followers</div>
                 </div>
-                <div className="text-center p-3 bg-muted/30 rounded-xl">
+                <div className="text-center p-3 bg-muted/30 rounded-xl hover:bg-muted/50 transition-colors duration-200 lift">
                   <div className="text-xl sm:text-2xl font-bold text-foreground">{stats.followingCount}</div>
                   <div className="text-xs sm:text-sm text-muted-foreground font-medium">Following</div>
                 </div>
@@ -402,7 +416,7 @@ function ProfilePage() {
               
               {/* Bio */}
               {profile.bio && (
-                <div className="p-4 bg-muted/50 rounded-xl">
+                <div className="p-4 bg-muted/50 rounded-xl hover:bg-muted/70 transition-colors duration-200 lift">
                   <p className="text-foreground leading-relaxed">{profile.bio}</p>
                 </div>
               )}
@@ -411,10 +425,10 @@ function ProfilePage() {
         </div>
 
         {/* Posts Section */}
-        <div className="bg-card/80 backdrop-blur-xl border border-border rounded-2xl shadow-lg p-4 sm:p-6">
+        <div className="bg-card/80 backdrop-blur-xl border border-border rounded-2xl shadow-lg p-4 sm:p-6 lift">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-lg sm:text-xl font-semibold text-foreground flex items-center space-x-2">
-              <Grid className="h-5 w-5 text-primary" />
+              <Grid className="h-5 w-5 text-primary animate-pulse" />
               <span>Posts</span>
             </h2>
             
@@ -424,7 +438,7 @@ function ProfilePage() {
                 onClick={() => setViewMode('grid')}
                 className={`p-2 rounded-lg transition-all duration-200 ${
                   viewMode === 'grid' 
-                    ? 'bg-primary text-primary-foreground shadow' 
+                    ? 'bg-primary text-primary-foreground shadow lift' 
                     : 'text-muted-foreground hover:bg-secondary'
                 }`}
                 title="Grid view"
@@ -435,7 +449,7 @@ function ProfilePage() {
                 onClick={() => setViewMode('list')}
                 className={`p-2 rounded-lg transition-all duration-200 ${
                   viewMode === 'list' 
-                    ? 'bg-primary text-primary-foreground shadow' 
+                    ? 'bg-primary text-primary-foreground shadow lift' 
                     : 'text-muted-foreground hover:bg-secondary'
                 }`}
                 title="List view"
@@ -446,7 +460,7 @@ function ProfilePage() {
           </div>
           
           {(!posts || posts.length === 0) ? (
-            <div className="text-center py-12 sm:py-16">
+            <div className="text-center py-12 sm:py-16 animate-fade-in">
               <div className="relative mb-6">
                 <div className="absolute inset-0 bg-gradient-to-br from-muted/30 to-secondary/30 rounded-full blur-xl opacity-50"></div>
                 <Grid className="relative h-12 w-12 sm:h-16 sm:w-16 text-muted-foreground mx-auto" />
@@ -460,26 +474,40 @@ function ProfilePage() {
               {posts.map((post) => (
                 <div 
                   key={post.id} 
-                  className="aspect-square rounded-xl overflow-hidden cursor-pointer group relative"
+                  className="aspect-square rounded-xl overflow-hidden cursor-pointer group relative lift"
                   onClick={() => window.location.href = `/post/${post.id}`}
                 >
-                  <img 
-                    src={post.image_url} 
-                    alt={post.caption || 'Post image'} 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                    <div className="flex space-x-4 text-white">
-                      <div className="flex items-center space-x-1">
-                        <Heart className="h-6 w-6" />
-                        <span className="font-semibold">{post.likes?.length || 0}</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <MessageCircle className="h-6 w-6" />
-                        <span className="font-semibold">{post.comments?.length || 0}</span>
+                  {isVideoPost(post) ? (
+                    <div className="relative w-full h-full">
+                      <video 
+                        src={post.image_url} 
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                        <Play className="h-8 w-8 text-white" />
                       </div>
                     </div>
-                  </div>
+                  ) : (
+                    <>
+                      <img 
+                        src={post.image_url} 
+                        alt={post.caption || 'Post image'} 
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                        <div className="flex space-x-4 text-white">
+                          <div className="flex items-center space-x-1">
+                            <Heart className="h-6 w-6" />
+                            <span className="font-semibold">{post.likes?.length || 0}</span>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <MessageCircle className="h-6 w-6" />
+                            <span className="font-semibold">{post.comments?.length || 0}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               ))}
             </div>
@@ -487,7 +515,9 @@ function ProfilePage() {
             // List View
             <div className="space-y-6">
               {posts.map((post) => (
-                <PostCard key={post.id} post={post} currentUser={currentUser} onPostDelete={handlePostDelete} />
+                <div key={post.id} className="animate-fade-in">
+                  <PostCard post={post} currentUser={currentUser} onPostDelete={handlePostDelete} />
+                </div>
               ))}
             </div>
           )}
