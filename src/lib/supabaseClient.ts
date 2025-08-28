@@ -5,17 +5,26 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env
 
 // Check if environment variables are missing or contain placeholder values
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables. Please configure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your .env.local file.')
+  console.error('❌ Missing Supabase environment variables!')
+  console.error('Please configure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your .env.local file.')
+  console.error('Check the README.md file for setup instructions.')
+  throw new Error('Missing Supabase environment variables. Please configure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your .env.local file. Check the README.md file for setup instructions.')
 }
 
 if (supabaseUrl.includes('your_supabase_project_url_here') || supabaseAnonKey.includes('your_supabase_anon_key_here')) {
-  throw new Error('Please replace the placeholder values in your .env.local file with actual Supabase credentials from your Supabase dashboard.')
+  console.error('❌ Placeholder values detected in .env.local!')
+  console.error('Please replace the placeholder values in your .env.local file with actual Supabase credentials.')
+  console.error('Check the README.md file for setup instructions.')
+  throw new Error('Please replace the placeholder values in your .env.local file with actual Supabase credentials from your Supabase dashboard. Check the README.md file for setup instructions.')
 }
 
 // Validate URL format
 try {
   new URL(supabaseUrl)
 } catch {
+  console.error('❌ Invalid Supabase URL format!')
+  console.error(`Invalid Supabase URL format: ${supabaseUrl}`)
+  console.error('Please check your NEXT_PUBLIC_SUPABASE_URL in .env.local')
   throw new Error(`Invalid Supabase URL format: ${supabaseUrl}. Please check your NEXT_PUBLIC_SUPABASE_URL in .env.local`)
 }
 

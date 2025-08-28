@@ -184,6 +184,59 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) to view the application.
 
+## 🛠️ Troubleshooting
+
+### PowerShell Execution Policy Issues (Windows)
+
+If you encounter issues running `npm run dev` on Windows with an error like:
+```
+File npm.ps1 cannot be loaded because running scripts is disabled on this system
+```
+
+This is due to Windows PowerShell's execution policy. To fix this:
+
+1. Open PowerShell as Administrator
+2. Run the following command:
+   ```powershell
+   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+   ```
+3. Confirm with `Y` when prompted
+
+This allows locally created scripts to run, which is necessary for npm to work properly.
+
+### React Compiler Issues
+
+If you see an error like:
+```
+[Error: Failed to load the `babel-plugin-react-compiler`. 
+It is required to use the React Compiler. Please install it.]
+```
+
+This happens because the project uses Next.js 15's experimental React Compiler feature. The required plugin should already be installed, but if you encounter this error:
+
+1. Install the missing plugin:
+   ```bash
+   npm install --save-dev babel-plugin-react-compiler
+   ```
+
+2. Or disable the React Compiler in `next.config.ts`:
+   ```typescript
+   const nextConfig: NextConfig = {
+     experimental: {
+       reactCompiler: false, // Set to false to disable
+     },
+     // ... rest of config
+   };
+   ```
+
+### Environment Variables Not Loading
+
+If the app starts but doesn't connect to Supabase:
+
+1. Ensure you've properly configured `.env.local` with your actual Supabase credentials
+2. Restart the development server after any environment variable changes
+3. Check that there are no extra spaces or characters in your environment values
+
 ## 🎯 Usage
 
 1. **Register/Login**: Create an account or sign in

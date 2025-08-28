@@ -527,10 +527,8 @@ function PostCard({ post, currentUser, onPostDelete, lazy = true }: PostCardProp
           alt={post.caption || 'Post image'}
           lazy={lazy}
           className="w-full h-auto object-cover max-h-96 group-hover:scale-[1.02] transition-transform duration-500"
-          style={{
-            aspectRatio: '1 / 1',
-            objectFit: 'cover'
-          }}
+          aspectRatio="1 / 1"
+          objectFit="cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
       </div>

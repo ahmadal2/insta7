@@ -1,4 +1,4 @@
-import { supabase } from './supabaseClient'
+import { supabase, Post } from './supabaseClient'
 
 /**
  * Helper functions for advanced Instagram-clone features
@@ -196,6 +196,18 @@ export async function getFollowingFeed(limit = 5, offset = 0) {
   const { data: { user }, error: userError } = await supabase.auth.getUser()
   if (userError || !user) throw new Error('Not logged in!')
 
+  // Get following IDs first
+  const { data: followingData, error: followingError } = await supabase
+    .from('follows')
+    .select('following_id')
+    .eq('follower_id', user.id)
+
+  if (followingError) throw followingError
+
+  const followingIds = followingData?.map(f => f.following_id) || []
+  // Include own posts in the feed
+  const allIds = [...followingIds, user.id]
+
   // Single optimized query with joins to reduce database round trips
   // Reduced limit to 5 for better mobile performance
   const { data, error } = await supabase
@@ -206,10 +218,12 @@ export async function getFollowingFeed(limit = 5, offset = 0) {
       image_url,
       caption,
       created_at,
-      profiles:user_id!inner(
+      profiles:user_id(
         id,
         username,
-        avatar_url
+        avatar_url,
+        bio,
+        updated_at
       ),
       likes(
         user_id
@@ -221,18 +235,12 @@ export async function getFollowingFeed(limit = 5, offset = 0) {
         user_id
       )
     `)
-    .in('user_id', 
-      supabase
-        .from('follows')
-        .select('following_id')
-        .eq('follower_id', user.id)
-        .then(({ data }) => [...(data?.map(f => f.following_id) || []), user.id])
-    )
+    .in('user_id', allIds)
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1)
 
   if (error) throw error
-  return data
+  return data as unknown as Post[]
 }
 
 export async function getPublicFeed(limit = 5, offset = 0) {
@@ -250,7 +258,9 @@ export async function getPublicFeed(limit = 5, offset = 0) {
       profiles:user_id(
         id,
         username,
-        avatar_url
+        avatar_url,
+        bio,
+        updated_at
       ),
       likes(
         user_id
@@ -266,7 +276,7 @@ export async function getPublicFeed(limit = 5, offset = 0) {
     .range(offset, offset + limit - 1)
 
   if (error) throw error
-  return data || []
+  return data as unknown as Post[] || []
 }
 
 // Helper function to get following user IDs
