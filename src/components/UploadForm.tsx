@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { supabase } from '@/lib/supabaseClient'
+import { getSupabaseClient } from '@/lib/supabaseClient'
 import { Upload, Image as ImageIcon, X, Play } from 'lucide-react'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -85,6 +85,7 @@ export default function UploadForm({ onSuccess }: UploadFormProps) {
     setError(null)
 
     try {
+      const supabase = getSupabaseClient()
       console.log('Starting upload process...')
       
       // Check if user is authenticated using getUser() method
@@ -190,10 +191,10 @@ export default function UploadForm({ onSuccess }: UploadFormProps) {
         .from('posts')
         .insert([
           {
-            // user_id is automatically set by database DEFAULT auth.uid()
+            user_id: user.id,  // Explicitly set user_id since it's required
             image_url: urlData.publicUrl,
             caption: data.caption || null,
-            media_type: isVideo ? 'video' : 'image'
+            content: data.caption || null  // Also set content for compatibility
           },
         ])
         .select()

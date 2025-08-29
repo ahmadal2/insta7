@@ -43,6 +43,10 @@ const config: Config = {
         'fade-in': 'fadeIn 0.3s ease-out',
         'slide-in': 'slideIn 0.3s ease-out',
         'pulse': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'bounce': 'bounce 1s infinite',
+        'spin': 'spin 1s linear infinite',
+        'ping': 'ping 1s cubic-bezier(0, 0, 0.2, 1) infinite',
+        'shimmer': 'shimmer 1.5s infinite linear',
       },
       keyframes: {
         fadeIn: {
@@ -56,6 +60,20 @@ const config: Config = {
         pulse: {
           '0%, 100%': { opacity: '1' },
           '50%': { opacity: '0.7' }
+        },
+        bounce: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-5px)' }
+        },
+        spin: {
+          'to': { transform: 'rotate(360deg)' }
+        },
+        ping: {
+          '75%, 100%': { transform: 'scale(1.5)', opacity: '0' }
+        },
+        shimmer: {
+          '0%': { backgroundPosition: '-200% 0' },
+          '100%': { backgroundPosition: '200% 0' }
         }
       },
       screens: {

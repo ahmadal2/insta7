@@ -17,11 +17,9 @@ CREATE TABLE IF NOT EXISTS posts (
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   image_url TEXT NOT NULL,
   caption TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+  media_type TEXT DEFAULT 'image'
 );
-
--- Add a column to distinguish between image and video posts
-ALTER TABLE posts ADD COLUMN IF NOT EXISTS media_type TEXT DEFAULT 'image';
 
 -- Create likes table
 CREATE TABLE IF NOT EXISTS likes (

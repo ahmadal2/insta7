@@ -1,69 +1,21 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useState, ReactNode } from 'react'
 
-type Theme = 'light' | 'dark' | 'system'
+type Theme = 'dark'
 
 interface ThemeContextType {
   theme: Theme
-  setTheme: (theme: Theme) => void
-  resolvedTheme: 'light' | 'dark'
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('system')
-  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light')
-
-  useEffect(() => {
-    // Load theme from localStorage on mount
-    const savedTheme = localStorage.getItem('theme') as Theme | null
-    if (savedTheme) {
-      setTheme(savedTheme)
-    }
-  }, [])
-
-  useEffect(() => {
-    // Update resolvedTheme when theme changes
-    const updateResolvedTheme = () => {
-      if (theme === 'system') {
-        const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-        setResolvedTheme(systemTheme)
-      } else {
-        setResolvedTheme(theme)
-      }
-    }
-
-    updateResolvedTheme()
-
-    // Listen for system theme changes
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    mediaQuery.addEventListener('change', updateResolvedTheme)
-
-    return () => mediaQuery.removeEventListener('change', updateResolvedTheme)
-  }, [theme])
-
-  useEffect(() => {
-    // Apply theme to document
-    localStorage.setItem('theme', theme)
-    
-    const root = document.documentElement
-    if (resolvedTheme === 'dark') {
-      root.classList.add('dark')
-    } else {
-      root.classList.remove('dark')
-    }
-  }, [theme, resolvedTheme])
-
-  const value = {
-    theme,
-    setTheme,
-    resolvedTheme
-  }
+export default function ThemeProvider({ children }: { children: ReactNode }) {
+  // Instagram-style app is dark theme only
+  const [theme] = useState<Theme>('dark')
 
   return (
-    <ThemeContext.Provider value={value}>
+    <ThemeContext.Provider value={{ theme }}>
       {children}
     </ThemeContext.Provider>
   )

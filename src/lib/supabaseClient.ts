@@ -1,34 +1,74 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY
+// Create a function to initialize the Supabase client
+function createSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY
 
-// Check if environment variables are missing or contain placeholder values
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('❌ Missing Supabase environment variables!')
-  console.error('Please configure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your .env.local file.')
-  console.error('Check the README.md file for setup instructions.')
-  throw new Error('Missing Supabase environment variables. Please configure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your .env.local file. Check the README.md file for setup instructions.')
+  // Check if environment variables are missing or contain placeholder values
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error('❌ Missing Supabase environment variables!')
+    console.error('Please configure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your .env.local file.')
+    console.error('Check the README.md file for setup instructions.')
+    throw new Error('Missing Supabase environment variables. Please configure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your .env.local file. Check the README.md file for setup instructions.')
+  }
+
+  if (supabaseUrl.includes('your_supabase_project_url_here') || supabaseAnonKey.includes('your_supabase_anon_key_here')) {
+    console.error('❌ Placeholder values detected in .env.local!')
+    console.error('Please replace the placeholder values in your .env.local file with actual Supabase credentials.')
+    console.error('Check the README.md file for setup instructions.')
+    throw new Error('Please replace the placeholder values in your .env.local file with actual Supabase credentials from your Supabase dashboard. Check the README.md file for setup instructions.')
+  }
+
+  // Validate URL format
+  try {
+    new URL(supabaseUrl)
+  } catch {
+    console.error('❌ Invalid Supabase URL format!')
+    console.error(`Invalid Supabase URL format: ${supabaseUrl}`)
+    console.error('Please check your NEXT_PUBLIC_SUPABASE_URL in .env.local')
+    throw new Error(`Invalid Supabase URL format: ${supabaseUrl}. Please check your NEXT_PUBLIC_SUPABASE_URL in .env.local`)
+  }
+
+  // Create the Supabase client with proper error handling
+  try {
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
+      },
+      global: {
+        headers: {
+          'X-Client-Info': 'ahmad-insta'
+        }
+      }
+    })
+    return supabase
+  } catch (error) {
+    console.error('❌ Error creating Supabase client:', error)
+    throw new Error('Failed to initialize Supabase client. Please check your configuration.')
+  }
 }
 
-if (supabaseUrl.includes('your_supabase_project_url_here') || supabaseAnonKey.includes('your_supabase_anon_key_here')) {
-  console.error('❌ Placeholder values detected in .env.local!')
-  console.error('Please replace the placeholder values in your .env.local file with actual Supabase credentials.')
-  console.error('Check the README.md file for setup instructions.')
-  throw new Error('Please replace the placeholder values in your .env.local file with actual Supabase credentials from your Supabase dashboard. Check the README.md file for setup instructions.')
+// Export a function that returns the Supabase client
+let supabaseInstance: SupabaseClient | null = null
+
+export function getSupabaseClient(): SupabaseClient {
+  if (!supabaseInstance) {
+    supabaseInstance = createSupabaseClient()
+  }
+  return supabaseInstance
 }
 
-// Validate URL format
-try {
-  new URL(supabaseUrl)
-} catch {
-  console.error('❌ Invalid Supabase URL format!')
-  console.error(`Invalid Supabase URL format: ${supabaseUrl}`)
-  console.error('Please check your NEXT_PUBLIC_SUPABASE_URL in .env.local')
-  throw new Error(`Invalid Supabase URL format: ${supabaseUrl}. Please check your NEXT_PUBLIC_SUPABASE_URL in .env.local`)
-}
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Also export the client directly for backward compatibility
+// Initialize it lazily to avoid issues with environment variables
+export const supabase = new Proxy({}, {
+  get: function(target, prop) {
+    const client = getSupabaseClient();
+    return client[prop];
+  }
+}) as SupabaseClient;
 
 // Types for our database tables
 export interface Profile {
@@ -41,11 +81,13 @@ export interface Profile {
 
 export interface Post {
   id: string
-  user_id: string
-  image_url: string
+  user_id: string | null
+  image_url: string | null
   caption: string | null
+  content: string | null
   created_at: string
-  media_type: string | null
+  updated_at: string
+  // Removed media_type field to avoid schema cache issues
   profiles: Profile
   likes: Like[]
   comments: Comment[]

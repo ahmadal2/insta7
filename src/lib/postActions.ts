@@ -1,4 +1,4 @@
-import { supabase, Post } from './supabaseClient'
+import { getSupabaseClient } from './supabaseClient'
 
 /**
  * Helper functions for advanced Instagram-clone features
@@ -7,13 +7,15 @@ import { supabase, Post } from './supabaseClient'
 
 // POST OPERATIONS
 export async function createPost(imageUrl: string, caption?: string) {
+  const supabase = getSupabaseClient()
   const { data: { user }, error: userError } = await supabase.auth.getUser()
   if (userError || !user) throw new Error('Not logged in!')
 
   const { data, error } = await supabase.from('posts').insert({
     user_id: user.id,   // 👈 explicit user_id (REQUIRED)
     image_url: imageUrl,
-    caption: caption || null
+    caption: caption || null,
+    content: caption || null  // Also set content for compatibility
   }).select()
 
   if (error) throw error
@@ -21,6 +23,7 @@ export async function createPost(imageUrl: string, caption?: string) {
 }
 
 export async function deletePost(postId: string) {
+  const supabase = getSupabaseClient()
   const { data: { user }, error: userError } = await supabase.auth.getUser()
   if (userError || !user) throw new Error('Not logged in!')
 
@@ -36,6 +39,7 @@ export async function deletePost(postId: string) {
 
 // COMMENT OPERATIONS
 export async function addComment(postId: string, text: string) {
+  const supabase = getSupabaseClient()
   const { data: { user }, error: userError } = await supabase.auth.getUser()
   if (userError || !user) throw new Error('Not logged in!')
 
@@ -50,6 +54,7 @@ export async function addComment(postId: string, text: string) {
 }
 
 export async function deleteComment(commentId: string) {
+  const supabase = getSupabaseClient()
   const { data: { user }, error: userError } = await supabase.auth.getUser()
   if (userError || !user) throw new Error('Not logged in!')
 
@@ -65,6 +70,7 @@ export async function deleteComment(commentId: string) {
 
 // LIKE OPERATIONS
 export async function likePost(postId: string) {
+  const supabase = getSupabaseClient()
   const { data: { user }, error: userError } = await supabase.auth.getUser()
   if (userError || !user) throw new Error('Not logged in!')
 
@@ -78,6 +84,7 @@ export async function likePost(postId: string) {
 }
 
 export async function unlikePost(postId: string) {
+  const supabase = getSupabaseClient()
   const { data: { user }, error: userError } = await supabase.auth.getUser()
   if (userError || !user) throw new Error('Not logged in!')
 
@@ -93,6 +100,7 @@ export async function unlikePost(postId: string) {
 
 // FOLLOW OPERATIONS (NEW)
 export async function followUser(followingId: string) {
+  const supabase = getSupabaseClient()
   const { data: { user }, error: userError } = await supabase.auth.getUser()
   if (userError || !user) throw new Error('Not logged in!')
 
@@ -110,6 +118,7 @@ export async function followUser(followingId: string) {
 }
 
 export async function unfollowUser(followingId: string) {
+  const supabase = getSupabaseClient()
   const { data: { user }, error: userError } = await supabase.auth.getUser()
   if (userError || !user) throw new Error('Not logged in!')
 
@@ -124,6 +133,7 @@ export async function unfollowUser(followingId: string) {
 }
 
 export async function checkIfFollowing(followingId: string): Promise<boolean> {
+  const supabase = getSupabaseClient()
   const { data: { user }, error: userError } = await supabase.auth.getUser()
   if (userError || !user) return false
 
@@ -139,6 +149,7 @@ export async function checkIfFollowing(followingId: string): Promise<boolean> {
 
 // REPOST OPERATIONS (NEW)
 export async function repostPost(originalPostId: string) {
+  const supabase = getSupabaseClient()
   const { data: { user }, error: userError } = await supabase.auth.getUser()
   if (userError || !user) throw new Error('Not logged in!')
 
@@ -152,6 +163,7 @@ export async function repostPost(originalPostId: string) {
 }
 
 export async function unrepostPost(originalPostId: string) {
+  const supabase = getSupabaseClient()
   const { data: { user }, error: userError } = await supabase.auth.getUser()
   if (userError || !user) throw new Error('Not logged in!')
 
@@ -166,6 +178,7 @@ export async function unrepostPost(originalPostId: string) {
 }
 
 export async function checkIfReposted(originalPostId: string): Promise<boolean> {
+  const supabase = getSupabaseClient()
   const { data: { user }, error: userError } = await supabase.auth.getUser()
   if (userError || !user) return false
 
@@ -181,6 +194,7 @@ export async function checkIfReposted(originalPostId: string): Promise<boolean> 
 
 // USER STATS
 export async function getUserStats(userId: string) {
+  const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from('user_stats')
     .select('*')
@@ -193,6 +207,7 @@ export async function getUserStats(userId: string) {
 
 // FEED OPERATIONS - OPTIMIZED FOR MOBILE PERFORMANCE
 export async function getFollowingFeed(limit = 5, offset = 0) {
+  const supabase = getSupabaseClient()
   const { data: { user }, error: userError } = await supabase.auth.getUser()
   if (userError || !user) throw new Error('Not logged in!')
 
@@ -240,10 +255,11 @@ export async function getFollowingFeed(limit = 5, offset = 0) {
     .range(offset, offset + limit - 1)
 
   if (error) throw error
-  return data as unknown as Post[]
+  return data
 }
 
 export async function getPublicFeed(limit = 5, offset = 0) {
+  const supabase = getSupabaseClient()
   // Single optimized query with all related data
   // Reduced limit to 5 for better mobile performance
   // Only fetch essential data to reduce payload
@@ -276,7 +292,7 @@ export async function getPublicFeed(limit = 5, offset = 0) {
     .range(offset, offset + limit - 1)
 
   if (error) throw error
-  return data as unknown as Post[] || []
+  return data || []
 }
 
 /**
@@ -284,21 +300,18 @@ export async function getPublicFeed(limit = 5, offset = 0) {
  * (Database automatically sets user_id)
  */
 
-/**
- * Enhanced functions using DEFAULT auth.uid() approach (Solution 2)
- * Simplified policies with reduced client-side error surface
- */
-
 export async function createPostSimplified(imageUrl: string, caption?: string) {
+  const supabase = getSupabaseClient()
   // Check authentication
   const { data: { user }, error: userError } = await supabase.auth.getUser()
   if (userError || !user) throw new Error('Not logged in!')
 
   // With DEFAULT auth.uid() set, user_id is automatic - no need to pass it
   const { data, error } = await supabase.from('posts').insert({
+    user_id: user.id,  // Explicitly set user_id for compatibility
     image_url: imageUrl,
-    caption: caption || null
-    // user_id is automatically set by database DEFAULT auth.uid()
+    caption: caption || null,
+    content: caption || null  // Also set content for compatibility
   }).select()
 
   if (error) throw error
@@ -306,11 +319,16 @@ export async function createPostSimplified(imageUrl: string, caption?: string) {
 }
 
 export async function createPostAuto(imageUrl: string, caption?: string) {
+  const supabase = getSupabaseClient()
   // With DEFAULT auth.uid() set, user_id is automatic
+  const { data: { user }, error: userError } = await supabase.auth.getUser()
+  if (userError || !user) throw new Error('Not logged in!')
+
   const { data, error } = await supabase.from('posts').insert({
+    user_id: user.id,  // Explicitly set user_id for compatibility
     image_url: imageUrl,
-    caption: caption || null
-    // user_id is automatically set by database DEFAULT
+    caption: caption || null,
+    content: caption || null  // Also set content for compatibility
   }).select()
 
   if (error) throw error
@@ -318,11 +336,15 @@ export async function createPostAuto(imageUrl: string, caption?: string) {
 }
 
 export async function addCommentAuto(postId: string, text: string) {
+  const supabase = getSupabaseClient()
   // With DEFAULT auth.uid() set, user_id is automatic
+  const { data: { user }, error: userError } = await supabase.auth.getUser()
+  if (userError || !user) throw new Error('Not logged in!')
+
   const { data, error } = await supabase.from('comments').insert({
+    user_id: user.id,  // Explicitly set user_id for compatibility
     post_id: postId,
     text: text
-    // user_id is automatically set by database DEFAULT
   }).select()
 
   if (error) throw error
@@ -330,10 +352,14 @@ export async function addCommentAuto(postId: string, text: string) {
 }
 
 export async function likePostAuto(postId: string) {
+  const supabase = getSupabaseClient()
   // With DEFAULT auth.uid() set, user_id is automatic
+  const { data: { user }, error: userError } = await supabase.auth.getUser()
+  if (userError || !user) throw new Error('Not logged in!')
+
   const { data, error } = await supabase.from('likes').insert({
+    user_id: user.id,  // Explicitly set user_id for compatibility
     post_id: postId
-    // user_id is automatically set by database DEFAULT
   }).select()
 
   if (error) throw error

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { User } from '@supabase/supabase-js'
-import { supabase } from '@/lib/supabaseClient'
+import { getSupabaseClient } from '@/lib/supabaseClient'
 import UploadForm from '@/components/UploadForm'
 import Loading from '@/components/Loading'
 import { Plus } from 'lucide-react'
@@ -15,6 +15,7 @@ export default function UploadPage() {
 
   useEffect(() => {
     const getUser = async () => {
+      const supabase = getSupabaseClient()
       const { data: { session } } = await supabase.auth.getSession()
       
       if (!session?.user) {
@@ -29,6 +30,7 @@ export default function UploadPage() {
     getUser()
 
     // Listen for auth changes
+    const supabase = getSupabaseClient()
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (!session?.user) {

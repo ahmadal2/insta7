@@ -21,7 +21,7 @@ export default function ThemeToggle() {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
+        className="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700"
         aria-label="Toggle theme"
       >
         <CurrentIcon className="h-5 w-5 text-gray-600 dark:text-gray-300" />
@@ -36,7 +36,7 @@ export default function ThemeToggle() {
           />
           
           {/* Dropdown */}
-          <div className="absolute right-0 top-full mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-20 min-w-[120px]">
+          <div className="absolute right-0 top-full mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded z-20 min-w-[120px]">
             {themes.map((themeOption) => {
               const Icon = themeOption.icon
               return (
@@ -46,9 +46,9 @@ export default function ThemeToggle() {
                     setTheme(themeOption.value)
                     setIsOpen(false)
                   }}
-                  className={`w-full flex items-center space-x-2 px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 first:rounded-t-lg last:rounded-b-lg ${
+                  className={`w-full flex items-center space-x-2 px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 ${
                     theme === themeOption.value 
-                      ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' 
+                      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' 
                       : 'text-gray-700 dark:text-gray-300'
                   }`}
                 >
