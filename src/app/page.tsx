@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { User } from '@supabase/supabase-js'
 import { supabase, Post } from '@/lib/supabaseClient'
 import { getPublicFeed, getFollowingFeed } from '@/lib/postActions'
@@ -13,7 +13,7 @@ import { PageLoader, PostSkeleton } from '@/components/Loading'
 export const dynamic = 'force-dynamic'
 
 export default function Home() {
-  const [posts, setPosts] = useState<Post[]>([])
+  const [posts, setPosts] = useState<unknown[]>([])
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [postsLoading, setPostsLoading] = useState(false)
@@ -32,17 +32,20 @@ export default function Home() {
     const offset = 0
     
     try {
-      let postsData: Post[] = []
+      let postsData: unknown[] = []
       
       if (type === 'following' && user) {
         try {
-          postsData = await getFollowingFeed(limit, offset)
+          const data = await getFollowingFeed(limit, offset)
+          postsData = data as unknown[]
         } catch (followingError) {
           console.warn('Following feed failed, falling back to public:', followingError)
-          postsData = await getPublicFeed(limit, offset)
+          const data = await getPublicFeed(limit, offset)
+          postsData = data as unknown[]
         }
       } else {
-        postsData = await getPublicFeed(limit, offset)
+        const data = await getPublicFeed(limit, offset)
+        postsData = data as unknown[]
       }
 
       setPosts(postsData)
@@ -149,8 +152,8 @@ export default function Home() {
               <p className="text-muted-foreground">No posts to show</p>
             </div>
           ) : (
-            posts.map(post => (
-              <PostCard key={post.id} post={post} currentUser={user} />
+            posts.map((post) => (
+              <PostCard key={(post as { id: string }).id} post={post as Post} currentUser={user} />
             ))
           )}
         </div>

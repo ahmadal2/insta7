@@ -2,8 +2,16 @@
 
 import { useEffect, useState } from 'react'
 
+// Define the type for environment variables
+interface EnvVars {
+  NEXT_PUBLIC_SUPABASE_URL?: string
+  NEXT_PUBLIC_SUPABASE_ANON_KEY?: string
+  SUPABASE_URL?: string
+  SUPABASE_ANON_KEY?: string
+}
+
 export default function TestEnvPage() {
-  const [envVars, setEnvVars] = useState({})
+  const [envVars, setEnvVars] = useState<EnvVars>({})
 
   useEffect(() => {
     // This will run on the client side

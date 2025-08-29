@@ -7,13 +7,31 @@ import { User } from '@supabase/supabase-js'
 import { PageLoader } from '@/components/Loading'
 import { Grid, Bookmark, PlayCircle, Settings, Plus, Camera } from 'lucide-react'
 
+// Define proper TypeScript interfaces
+interface Profile {
+  id: string
+  username: string
+  avatar_url: string | null
+  bio: string | null
+  // Add other profile fields as needed
+}
+
+interface Post {
+  id: string
+  user_id: string
+  image_url: string
+  caption: string | null
+  created_at: string
+  // Add other post fields as needed
+}
+
 // Force dynamic rendering for this page
 export const dynamic = 'force-dynamic'
 
 export default function ProfilePage() {
   const { id } = useParams()
-  const [profile, setProfile] = useState<any>(null)
-  const [posts, setPosts] = useState<any[]>([])
+  const [profile, setProfile] = useState<Profile | null>(null)
+  const [posts, setPosts] = useState<Post[]>([])
   const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [isFollowing, setIsFollowing] = useState(false)
@@ -233,7 +251,7 @@ export default function ProfilePage() {
       
       {activeTab === 'saved' && (
         <div className="col-span-3 py-20 text-center">
-          <p className="text-muted-foreground">Only you can see what you've saved</p>
+          <p className="text-muted-foreground">Only you can see what you&apos;ve saved</p>
         </div>
       )}
       

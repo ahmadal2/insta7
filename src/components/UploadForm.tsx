@@ -199,11 +199,12 @@ export default function UploadForm({ onSuccess }: UploadFormProps) {
         ])
         .select()
 
-      console.log('Post creation response:', { postData, postError })
-
       if (postError) {
-        // Handle specific RLS errors
-        if (postError.message.includes('row-level security policy')) {
+        console.error('Post creation error:', postError)
+        
+        // Handle specific database errors
+        if (postError.message.includes('row-level security policy') || 
+            postError.message.includes('new row violates row-level security')) {
           throw new Error(
             'Permission denied: You must be logged in and have the proper permissions to create posts. Please log out and log back in.'
           )
@@ -228,7 +229,6 @@ export default function UploadForm({ onSuccess }: UploadFormProps) {
       console.error('Error constructor:', err?.constructor?.name)
       console.error('Error message:', err instanceof Error ? err.message : err)
       console.error('Error stack:', err instanceof Error ? err.stack : 'No stack trace')
-      console.error('Supabase client status:', !!supabase)
       console.error('Environment check:')
       console.error('- SUPABASE_URL exists:', !!process.env.NEXT_PUBLIC_SUPABASE_URL)
       console.error('- SUPABASE_ANON_KEY exists:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)

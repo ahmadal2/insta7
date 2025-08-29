@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { useRouter } from 'next/navigation'
+import { User } from '@supabase/supabase-js'
 
 export default function TestUploadPage() {
-  const [user, setUser] = useState(null)
+  const [user, setUser] = useState<User | null>(null)
   const [uploading, setUploading] = useState(false)
   const [message, setMessage] = useState('')
   const router = useRouter()
@@ -109,7 +110,8 @@ export default function TestUploadPage() {
         setMessage('Test post created and cleaned up successfully')
       }
     } catch (err) {
-      setMessage(`Exception: ${err.message}`)
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+      setMessage(`Exception: ${errorMessage}`)
       console.error('Exception:', err)
     } finally {
       setUploading(false)

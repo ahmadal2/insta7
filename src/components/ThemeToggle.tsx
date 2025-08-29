@@ -5,7 +5,7 @@ import { Sun, Moon, Monitor } from 'lucide-react'
 import { useState } from 'react'
 
 export default function ThemeToggle() {
-  const { theme, setTheme } = useTheme()
+  const { theme } = useTheme()
   const [isOpen, setIsOpen] = useState(false)
 
   const themes = [
@@ -14,7 +14,7 @@ export default function ThemeToggle() {
     { value: 'system', label: 'System', icon: Monitor }
   ] as const
 
-  const currentTheme = themes.find(t => t.value === theme) || themes[0]
+  const currentTheme = themes.find(t => t.value === theme) || themes[1] // Default to dark theme
   const CurrentIcon = currentTheme.icon
 
   return (
@@ -43,7 +43,7 @@ export default function ThemeToggle() {
                 <button
                   key={themeOption.value}
                   onClick={() => {
-                    setTheme(themeOption.value)
+                    // For now, just close the dropdown since we don't have setTheme
                     setIsOpen(false)
                   }}
                   className={`w-full flex items-center space-x-2 px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 ${

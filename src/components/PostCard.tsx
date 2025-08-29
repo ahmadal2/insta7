@@ -82,7 +82,7 @@ export default function PostCard({ post, currentUser, onPostDelete }: PostCardPr
         <div className="flex flex-col">
           <div className="flex items-center">
             <Link href={`/profile/${post.user_id}`} className="post-user">
-              {post.profiles?.username || post.user_id.substring(0, 8)}
+              {post.profiles?.username || (post.user_id ? post.user_id.substring(0, 8) : 'Unknown User')}
             </Link>
             <span className="post-time">• {postTime}</span>
           </div>
@@ -96,7 +96,7 @@ export default function PostCard({ post, currentUser, onPostDelete }: PostCardPr
       {/* Post image */}
       <div className="relative">
         <img
-          src={post.image_url}
+          src={post.image_url || "https://via.placeholder.com/400"}
           alt={post.caption || "Post image"}
           className="post-image"
         />

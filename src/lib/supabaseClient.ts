@@ -63,10 +63,10 @@ export function getSupabaseClient(): SupabaseClient {
 
 // Also export the client directly for backward compatibility
 // Initialize it lazily to avoid issues with environment variables
-export const supabase = new Proxy({}, {
+export const supabase = new Proxy({} as SupabaseClient, {
   get: function(target, prop) {
     const client = getSupabaseClient();
-    return client[prop];
+    return client[prop as keyof SupabaseClient];
   }
 }) as SupabaseClient;
 
